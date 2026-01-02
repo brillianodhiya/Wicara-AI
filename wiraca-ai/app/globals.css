@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Sapphire Nightfall Whisper Color Palette */
+  --primary-blue: #0474C4;
+  --primary-slate: #5379AE;
+  --primary-teal: #2C444C;
+  --accent-light: #A8C4EC;
+  --accent-deep: #06457F;
+  --accent-dark: #262B40;
+  
+  --background: #ffffff;
+  --foreground: var(--accent-dark);
+}
+
+/* Disable dark mode */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--primary-teal);
+    --foreground: #ededed;
+  }
+} */
+
+body {
+  background: var(--background);
+  color: var(--accent-dark) !important;
+}
+
+/* Force text colors */
+p, h1, h2, h3, h4, h5, h6, span, div, a {
+  color: inherit;
+}
