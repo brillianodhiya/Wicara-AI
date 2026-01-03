@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wicarai: Masa Depan Rapat AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B0F19',
+                            primary: '#6366F1', // Indigo 500
+                            secondary: '#06B6D4', // Cyan 500
+                            accent: '#F97316', // Orange 500
+                        }
+                    },
+                    backgroundImage: {
+                        'hero-gradient': 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.2);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #818CF8, #22D3EE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: blob-bounce 10s infinite ease-in-out;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: #4F46E5;
+        }
+
+        .blob-2 {
+            bottom: 10%;
+            right: -5%;
+            width: 400px;
+            height: 400px;
+            background: #0891B2;
+            animation-delay: 2s;
+        }
+
+        .blob-3 {
+            top: 40%;
+            left: 30%;
+            width: 300px;
+            height: 300px;
+            background: #7C3AED;
+            opacity: 0.2;
+            animation-delay: 4s;
+        }
+
+        @keyframes blob-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #6366F1;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #6366F1;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Ambient Background -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b-0 border-b-white/10 lg:px-12 px-6 py-4">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="text-xl font-display font-bold tracking-tight text-white flex items-center gap-2">
+                <span class="w-2 h-8 bg-indigo-500 rounded-full inline-block"></span>
+                WICARAI <span
+                    class="text-indigo-400 text-xs uppercase tracking-widest border border-indigo-500/30 px-2 py-0.5 rounded ml-2">2025</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex gap-6 text-sm font-medium text-slate-300">
+                    <a href="#vision" class="hover:text-white transition" data-i18n="nav_vision">Visi</a>
+                    <a href="#urgency" class="hover:text-white transition" data-i18n="nav_context">Konteks</a>
+                    <a href="#market" class="hover:text-white transition" data-i18n="nav_market">Pasar</a>
+                    <a href="#roadmap" class="hover:text-white transition" data-i18n="nav_roadmap">Roadmap</a>
+                </div>
+
+                <!-- Language Toggle -->
+                <div class="relative inline-block w-24 align-middle select-none transition duration-200 ease-in">
+                    <div class="flex bg-slate-800 rounded-full border border-slate-600 p-1 cursor-pointer"
+                        onclick="toggleLanguage()">
+                        <div id="lang-btn-id"
+                            class="w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full bg-indigo-500 text-white transition-all">
+                            ID</div>
+                        <div id="lang-btn-en"
+                            class="w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full text-slate-400 transition-all">
+                            EN</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative min-h-screen flex items-center justify-center pt-20 px-6">
+        <div class="container mx-auto text-center z-10" data-aos="fade-up">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-indigo-500/30 text-indigo-300 text-sm font-medium mb-8">
+                <span class="relative flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                <span data-i18n="hero_badge">Revolusi Notulensi Rapat</span>
+            </div>
+            <h1 class="text-5xl md:text-8xl font-display font-extrabold tracking-tight leading-tight mb-6">
+                <span class="block" data-i18n="hero_title_1">Kendali Data Penuh.</span>
+                <span class="text-gradient" data-i18n="hero_title_2">Biaya Lebih Efisien.</span>
+            </h1>
+            <p class="text-lg md:text-2xl text-slate-400 max-w-2xl mx-auto mb-10 font-light" data-i18n="hero_desc">
+                Asisten Rapat <span class="text-white font-medium">Local-First</span> dengan Model <span
+                    class="text-orange-400 font-medium">Bring-Your-Own-Key (BYOK)</span>.
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-12">
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">60%</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider" data-i18n="stat_cost">Hemat Biaya</div>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">0kb</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider" data-i18n="stat_data">Data Keluar</div>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <div class="text-3xl font-bold text-white mb-1">100%</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider" data-i18n="stat_privacy">Privasi</div>
+                </div>
+                <div class="glass-card p-4 rounded-xl text-center">
+                    <div class="text-3xl font-bold text-orange-400 mb-1">BYOK</div>
+                    <div class="text-xs text-slate-400 uppercase tracking-wider" data-i18n="stat_model">Model API</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 space-y-32 relative z-10">
+
+        <!-- SECTION 1: VISION -->
+        <section id="vision" class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-12 text-center mb-8" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-display font-bold mb-4" data-i18n="vision_title">Paradigma Baru
+                    SaaS 2025</h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 mx-auto rounded-full"></div>
+            </div>
+
+            <div class="lg:col-span-5" data-aos="fade-right">
+                <div class="glass-card p-8 rounded-2xl border-l-4 border-l-indigo-500 h-full">
+                    <h3 class="text-2xl font-bold text-white mb-4" data-i18n="vision_card_title">Solusi untuk "SaaS
+                        Fatigue"</h3>
+                    <p class="text-slate-300 leading-relaxed mb-6" data-i18n="vision_card_desc_1">
+                        Banyak pengguna merasa lelah membayar langganan bulanan mahal untuk software yang jarang
+                        digunakan.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed" data-i18n="vision_card_desc_2">
+                        Wicarai hadir sebagai utilitas: **"Bayar hanya saat pakai"** dengan API Key sendiri, atau
+                        tambahkan fitur premium opsional.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6" data-aos="fade-left">
+                <!-- Chart: Cost Savings -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="text-lg font-semibold text-white mb-4 flex justify-between items-center">
+                        <span data-i18n="chart_cost_title">Perbandingan Biaya</span>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded text-slate-300">IDR / Bulan</span>
+                    </h4>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="costComparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart: Hybrid Work -->
+                <div class="glass-card p-6 rounded-2xl">
+                    <h4 class="text-lg font-semibold text-white mb-4" data-i18n="chart_hybrid_title">Tren Kerja Hybrid
+                    </h4>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="hybridWorkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MARKET TARGET -->
+        <section id="market" data-aos="fade-up">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 overflow-hidden relative">
+                <div
+                    class="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20">
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <div>
+                        <h2 class="text-3xl font-display font-bold mb-6" data-i18n="target_title">Target: Profesional
+                            Teknis</h2>
+                        <p class="text-slate-300 mb-8" data-i18n="target_desc">
+                            Fokus kami adalah Lead Developer, Freelancer, dan Solopreneur yang mengerti pentingnya
+                            privasi data.
+                        </p>
+
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-2xl">
+                                    ⚡</div>
+                                <div>
+                                    <h4 class="font-bold text-orange-200" data-i18n="pain_1_title">Efisiensi Budget</h4>
+                                    <p class="text-sm text-slate-400 mt-1" data-i18n="pain_1_desc">Menghindari biaya
+                                        bulanan flat untuk pemakaian yang tidak tentu.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-2xl">
+                                    🔒</div>
+                                <div>
+                                    <h4 class="font-bold text-indigo-400" data-i18n="pain_2_title">Privasi Absolut</h4>
+                                    <p class="text-sm text-slate-400 mt-1" data-i18n="pain_2_desc">Menjamin data rahasia
+                                        (NDA) tidak bocor ke server publik.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-white/10">
+                            <h4 class="text-sm font-semibold text-slate-300 mb-4" data-i18n="chart_geo_title">Fokus
+                                Geografis (Tier-1 Indo)</h4>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="geoTargetChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 text-center text-cyan-300" data-i18n="chart_market_title">
+                            Posisi Pasar Strategis</h3>
+                        <div id="marketScatterPlot"
+                            class="flex-1 w-full rounded-xl overflow-hidden glass-card border border-white/10"></div>
+                        <p class="text-center text-xs text-slate-500 mt-3" data-i18n="chart_market_caption">*Rotasi
+                            grafik untuk melihat posisi ideal (Orange)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: ARCHITECTURE & ROADMAP -->
+        <section id="roadmap" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+            <!-- Architecture -->
+            <div data-aos="fade-right">
+                <h2 class="text-3xl font-display font-bold mb-8" data-i18n="arch_title">Arsitektur Local-First</h2>
+                <div class="glass-card p-1 rounded-2xl border border-dashed border-indigo-500/30">
+                    <div class="p-8 space-y-8">
+                        <h4 class="text-center text-indigo-300 mb-4 border-b border-white/10 pb-4"
+                            data-i18n="arch_subtitle">Alur Data Aman</h4>
+
+                        <!-- Model: Free Core vs Plugins -->
+                        <div class="bg-indigo-900/30 p-4 rounded-lg border border-indigo-500/50 mb-6">
+                            <h5 class="text-white font-bold text-sm mb-2" data-i18n="pricing_core_title">🛠️ Core
+                                Platform: FREE (BYOK)</h5>
+                            <p class="text-xs text-slate-300" data-i18n="pricing_core_desc">Recording, Transkripsi
+                                Lokal, & Encryption gratis selamanya. Anda hanya membayar biaya API langsung ke provider
+                                (Google/AssemblyAI).</p>
+                        </div>
+
+                        <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <h5 class="text-white font-bold text-sm mb-2" data-i18n="pricing_plugin_title">🔌 Optional
+                                Plugins (Rp 49k - 159k)</h5>
+                            <p class="text-xs text-slate-300" data-i18n="pricing_plugin_desc">Fitur tambahan seperti
+                                Email Summary, Integrasi Notion, dan Analitik Tim.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roadmap -->
+            <div data-aos="fade-left">
+                <h2 class="text-3xl font-display font-bold mb-8" data-i18n="roadmap_title">Roadmap</h2>
+                <div class="space-y-6 relative ml-4 border-l-2 border-slate-700 pl-8">
+
+                    <div class="relative">
+                        <span
+                            class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-cyan-500 border-4 border-slate-900"></span>
+                        <h3 class="text-xl font-bold text-white mb-2" data-i18n="q1_title">Q1: MVP & Pondasi</h3>
+                        <p class="text-slate-400 text-sm mb-3" data-i18n="q1_desc">Fitur Transkripsi Real-time, Local
+                            storage, dan Integrasi dasar.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span
+                            class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-indigo-500 border-4 border-slate-900"></span>
+                        <h3 class="text-xl font-bold text-white mb-2" data-i18n="q2_title">Q2: Keamanan & BYOK</h3>
+                        <p class="text-slate-400 text-sm mb-3" data-i18n="q2_desc">Enkripsi tingkat lanjut, Manajemen
+                            API Key User, dan Export PDF.</p>
+                    </div>
+
+                    <div class="relative">
+                        <span
+                            class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-slate-700 border-4 border-slate-900"></span>
+                        <h3 class="text-xl font-bold text-slate-500 mb-2" data-i18n="q3_title">Q3: Ekosistem</h3>
+                        <p class="text-slate-600 text-sm mb-3" data-i18n="q3_desc">Integrasi Slack/Notion dan plugin
+                            kolaborasi tim.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-white/10 pt-12 pb-8 text-center" data-aos="fade">
+            <h3 class="text-2xl font-display font-bold text-white mb-4">Wicarai</h3>
+            <p class="text-slate-400 text-sm max-w-md mx-auto mb-8" data-i18n="footer_quote">
+                Menghadirkan transkripsi cerdas dengan privasi penuh dan biaya yang adil.
+            </p>
+            <div class="text-xs text-slate-600">
+                &copy; 2025 Wicarai Project.
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Init Animation
+        AOS.init({ once: true, offset: 50, duration: 800 });
+
+        // --- DICTIONARY (ID & EN) ---
+        const dictionary = {
+            id: {
+                nav_vision: "Visi", nav_context: "Konteks", nav_market: "Pasar", nav_roadmap: "Roadmap",
+                hero_badge: "Revolusi Notulensi Rapat",
+                hero_title_1: "Kendali Data Penuh.",
+                hero_title_2: "Biaya Lebih Efisien.",
+                hero_desc: "Asisten Rapat **Local-First** dengan Model **Bring-Your-Own-Key (BYOK)**.",
+                stat_cost: "Hemat Biaya", stat_data: "Data Keluar", stat_privacy: "Privasi", stat_model: "Model API",
+                vision_title: "Paradigma Baru SaaS 2025",
+                vision_card_title: "Solusi untuk 'SaaS Fatigue'",
+                vision_card_desc_1: "Banyak pengguna merasa lelah membayar langganan bulanan mahal untuk software yang jarang digunakan.",
+                vision_card_desc_2: "Wicarai hadir sebagai utilitas: **'Bayar hanya saat pakai'** dengan API Key sendiri, atau tambahkan fitur premium opsional.",
+                chart_cost_title: "Perbandingan Biaya",
+                chart_hybrid_title: "Tren Kerja Hybrid",
+                target_title: "Target: Profesional Teknis",
+                target_desc: "Fokus kami adalah Lead Developer, Freelancer, dan Solopreneur yang mengerti pentingnya privasi data.",
+                pain_1_title: "Efisiensi Budget", pain_1_desc: "Menghindari biaya bulanan flat untuk pemakaian yang tidak tentu.",
+                pain_2_title: "Privasi Absolut", pain_2_desc: "Menjamin data rahasia (NDA) tidak bocor ke server publik.",
+                chart_geo_title: "Fokus Geografis (Tier-1 Indo)",
+                chart_market_title: "Posisi Pasar Strategis",
+                chart_market_caption: "*Rotasi grafik untuk melihat posisi ideal (Orange)",
+                arch_title: "Arsitektur Local-First",
+                arch_subtitle: "Alur Data Aman & Transparan",
+                pricing_core_title: "🛠️ Core Platform: FREE (BYOK)",
+                pricing_core_desc: "Recording, Transkripsi Lokal, & Encryption gratis selamanya. Anda hanya membayar biaya API langsung ke provider.",
+                pricing_plugin_title: "🔌 Optional Plugins (Rp 49k - 159k)",
+                pricing_plugin_desc: "Fitur tambahan berbayar seperti Email Summary, Integrasi Notion, dan Analitik Tim.",
+                roadmap_title: "Roadmap",
+                q1_title: "Q1: MVP & Pondasi", q1_desc: "Fitur Transkripsi Real-time, Local storage, dan Integrasi dasar.",
+                q2_title: "Q2: Keamanan & BYOK", q2_desc: "Enkripsi tingkat lanjut, Manajemen API Key User, dan Export PDF.",
+                q3_title: "Q3: Ekosistem", q3_desc: "Integrasi Slack/Notion dan plugin kolaborasi tim.",
+                footer_quote: "Menghadirkan transkripsi cerdas dengan privasi penuh dan biaya yang adil.",
+                // Chart Labels
+                cl_hybrid_remote: "Hybrid/Remote", cl_hybrid_onsite: "Kantor (On-Site)",
+                cl_cost_saas: "SaaS Biasa", cl_cost_wicarai: "Wicarai",
+                cl_cost_sub: "Langganan", cl_cost_api: "Biaya API",
+                cl_geo_label: "Kepadatan User"
+            },
+            en: {
+                nav_vision: "Vision", nav_context: "Context", nav_market: "Market", nav_roadmap: "Roadmap",
+                hero_badge: "Meeting Notes Revolution",
+                hero_title_1: "Full Data Control.",
+                hero_title_2: "Cost Efficient.",
+                hero_desc: "**Local-First** Meeting Assistant with **Bring-Your-Own-Key (BYOK)** Model.",
+                stat_cost: "Cost Savings", stat_data: "Data Egress", stat_privacy: "Privacy", stat_model: "API Model",
+                vision_title: "New SaaS Paradigm 2025",
+                vision_card_title: "Solution for 'SaaS Fatigue'",
+                vision_card_desc_1: "Users are tired of paying expensive monthly subscriptions for software they rarely use.",
+                vision_card_desc_2: "Wicarai is a utility: **'Pay as you go'** with your own API Keys, plus optional premium features.",
+                chart_cost_title: "Cost Comparison",
+                chart_hybrid_title: "Hybrid Work Trends",
+                target_title: "Target: Technical Professionals",
+                target_desc: "Our focus is on Lead Developers, Freelancers, and Solopreneurs who value data privacy.",
+                pain_1_title: "Budget Efficiency", pain_1_desc: "Avoid flat monthly fees for unpredictable usage.",
+                pain_2_title: "Absolute Privacy", pain_2_desc: "Ensure confidential data (NDA) never leaks to public servers.",
+                chart_geo_title: "Geographic Focus (Tier-1 Indo)",
+                chart_market_title: "Strategic Market Position",
+                chart_market_caption: "*Rotate chart to see the sweet spot (Orange)",
+                arch_title: "Local-First Architecture",
+                arch_subtitle: "Secure & Transparent Data Flow",
+                pricing_core_title: "🛠️ Core Platform: FREE (BYOK)",
+                pricing_core_desc: "Free Recording, Local Transcription & Encryption forever. You only pay API costs directly to providers.",
+                pricing_plugin_title: "🔌 Optional Plugins ($3 - $10)",
+                pricing_plugin_desc: "Paid add-ons like Email Summary, Notion Integration, and Team Analytics.",
+                roadmap_title: "Roadmap",
+                q1_title: "Q1: MVP & Foundation", q1_desc: "Real-time Transcription, Local Storage, and Basic Integration.",
+                q2_title: "Q2: Security & BYOK", q2_desc: "Advanced Encryption, User API Key Management, and PDF Export.",
+                q3_title: "Q3: Ecosystem", q3_desc: "Slack/Notion Integration and Team Collaboration plugins.",
+                footer_quote: "Delivering intelligent transcription with full privacy and fair pricing.",
+                // Chart Labels
+                cl_hybrid_remote: "Hybrid/Remote", cl_hybrid_onsite: "Office (On-Site)",
+                cl_cost_saas: "Standard SaaS", cl_cost_wicarai: "Wicarai",
+                cl_cost_sub: "Subscription", cl_cost_api: "API Cost",
+                cl_geo_label: "User Density"
+            }
+        };
+
+        const mdConverter = (text) => {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        };
+
+        let currentLang = 'id';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            updateContent();
+            updateCharts();
+            updateButtonUI();
+        }
+
+        function updateButtonUI() {
+            const btnId = document.getElementById('lang-btn-id');
+            const btnEn = document.getElementById('lang-btn-en');
+            if (currentLang === 'id') {
+                btnId.className = "w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full bg-indigo-500 text-white transition-all";
+                btnEn.className = "w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full text-slate-400 transition-all";
+            } else {
+                btnId.className = "w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full text-slate-400 transition-all";
+                btnEn.className = "w-1/2 text-center text-xs font-bold py-1 px-2 rounded-full bg-indigo-500 text-white transition-all";
+            }
+        }
+
+        function updateContent() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dictionary[currentLang][key]) {
+                    el.innerHTML = mdConverter(dictionary[currentLang][key]);
+                }
+            });
+        }
+
+        // --- CHARTS CONFIGURATION ---
+        Chart.defaults.color = '#94A3B8';
+        Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
+
+        let chartHybrid, chartCost, chartGeo;
+
+        function initCharts() {
+            // 1. Hybrid Work Chart
+            const ctxHybrid = document.getElementById('hybridWorkChart').getContext('2d');
+            chartHybrid = new Chart(ctxHybrid, {
+                type: 'doughnut',
+                data: {
+                    labels: [dictionary[currentLang].cl_hybrid_remote, dictionary[currentLang].cl_hybrid_onsite],
+                    datasets: [{
+                        data: [60, 40],
+                        backgroundColor: ['#6366F1', '#1E293B'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+                }
+            });
+
+            // 2. Cost Comparison Chart
+            const ctxCost = document.getElementById('costComparisonChart').getContext('2d');
+            chartCost = new Chart(ctxCost, {
+                type: 'bar',
+                data: {
+                    labels: [dictionary[currentLang].cl_cost_saas, dictionary[currentLang].cl_cost_wicarai],
+                    datasets: [
+                        {
+                            label: dictionary[currentLang].cl_cost_sub,
+                            data: [300000, 0],
+                            backgroundColor: '#EF4444',
+                            stack: 'Stack 0',
+                            borderRadius: 4
+                        },
+                        {
+                            label: dictionary[currentLang].cl_cost_api,
+                            data: [0, 120000],
+                            backgroundColor: '#6366F1',
+                            stack: 'Stack 0',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { grid: { display: false } }, y: { display: false } },
+                    plugins: { legend: { display: true, position: 'bottom' } }
+                }
+            });
+
+            // 3. Geo Target Chart
+            const ctxGeo = document.getElementById('geoTargetChart').getContext('2d');
+            chartGeo = new Chart(ctxGeo, {
+                type: 'bar',
+                data: {
+                    labels: ["Jakarta", "Bali", "Surabaya", "Bandung"],
+                    datasets: [{
+                        label: dictionary[currentLang].cl_geo_label,
+                        data: [95, 90, 75, 85],
+                        backgroundColor: ['#06B6D4', '#6366F1', '#8B5CF6', '#F472B6'],
+                        borderRadius: 4,
+                        barThickness: 15
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { display: false }, y: { grid: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update Labels
+            chartHybrid.data.labels = [dictionary[currentLang].cl_hybrid_remote, dictionary[currentLang].cl_hybrid_onsite];
+            chartHybrid.update();
+
+            chartCost.data.labels = [dictionary[currentLang].cl_cost_saas, dictionary[currentLang].cl_cost_wicarai];
+            chartCost.data.datasets[0].label = dictionary[currentLang].cl_cost_sub;
+            chartCost.data.datasets[1].label = dictionary[currentLang].cl_cost_api;
+            chartCost.update();
+
+            chartGeo.data.datasets[0].label = dictionary[currentLang].cl_geo_label;
+            chartGeo.update();
+        }
+
+        // Plotly 3D Market Position
+        const trace1 = {
+            x: [1, 2, 3, 4, 8, 9, 8],
+            y: [8, 9, 7, 8, 2, 3, 2],
+            z: [2, 3, 2, 4, 9, 9, 8],
+            mode: 'markers',
+            marker: {
+                size: 15,
+                color: ['#475569', '#475569', '#475569', '#475569', '#F97316', '#F97316', '#F97316'],
+                opacity: 0.9,
+                line: { width: 0 }
+            },
+            type: 'scatter3d',
+            text: ['User', 'User', 'User', 'User', 'Target', 'Target', 'Target'],
+            hoverinfo: 'text'
+        };
+
+        const layout = {
+            margin: { l: 0, r: 0, b: 0, t: 0 },
+            scene: {
+                xaxis: { title: 'Tech', gridcolor: '#334155', zerolinecolor: '#334155', showbackground: false },
+                yaxis: { title: 'Price', gridcolor: '#334155', zerolinecolor: '#334155', showbackground: false },
+                zaxis: { title: 'Privacy', gridcolor: '#334155', zerolinecolor: '#334155', showbackground: false },
+                bgcolor: 'rgba(0,0,0,0)',
+                camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            height: 300,
+            showlegend: false
+        };
+
+        Plotly.newPlot('marketScatterPlot', [trace1], layout, { displayModeBar: false, responsive: true });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initCharts);
+
+    </script>
+</body>
+
+</html>
