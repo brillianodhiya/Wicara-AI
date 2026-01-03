@@ -242,7 +242,7 @@
                         digunakan.
                     </p>
                     <p class="text-slate-300 leading-relaxed" data-i18n="vision_card_desc_2">
-                        Wicarai hadir sebagai utilitas: **"Bayar hanya saat pakai"** dengan API Key sendiri, atau
+                        Wicarai hadir sebagai utilitas: <b>"Bayar hanya saat pakai"</b> dengan API Key sendiri, atau
                         tambahkan fitur premium opsional.
                     </p>
                 </div>
@@ -262,7 +262,8 @@
 
                 <!-- Chart: Hybrid Work -->
                 <div class="glass-card p-6 rounded-2xl">
-                    <h4 class="text-lg font-semibold text-white mb-4" data-i18n="chart_hybrid_title">Tren Kerja Hybrid
+                    <h4 class="text-lg font-semibold text-white mb-4" data-i18n="chart_pay_title">Preferensi Pembayaran
+                        (Survei)
                     </h4>
                     <div class="chart-container" style="height: 250px;">
                         <canvas id="hybridWorkChart"></canvas>
@@ -291,7 +292,7 @@
                             <div class="flex gap-4">
                                 <div
                                     class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-2xl">
-                                    ⚡</div>
+                                    😵‍💫</div>
                                 <div>
                                     <h4 class="font-bold text-orange-200" data-i18n="pain_1_title">Efisiensi Budget</h4>
                                     <p class="text-sm text-slate-400 mt-1" data-i18n="pain_1_desc">Menghindari biaya
@@ -427,10 +428,10 @@
                 vision_card_desc_1: "Banyak pengguna merasa lelah membayar langganan bulanan mahal untuk software yang jarang digunakan.",
                 vision_card_desc_2: "Wicarai hadir sebagai utilitas: **'Bayar hanya saat pakai'** dengan API Key sendiri, atau tambahkan fitur premium opsional.",
                 chart_cost_title: "Perbandingan Biaya",
-                chart_hybrid_title: "Tren Kerja Hybrid",
+                chart_pay_title: "Preferensi Pembayaran (Survei)",
                 target_title: "Target: Profesional Teknis",
                 target_desc: "Fokus kami adalah Lead Developer, Freelancer, dan Solopreneur yang mengerti pentingnya privasi data.",
-                pain_1_title: "Efisiensi Budget", pain_1_desc: "Menghindari biaya bulanan flat untuk pemakaian yang tidak tentu.",
+                pain_1_title: "Gangguan Fokus", pain_1_desc: "90% Responden merasa terganggu saat harus mencatat sambil rapat.",
                 pain_2_title: "Privasi Absolut", pain_2_desc: "Menjamin data rahasia (NDA) tidak bocor ke server publik.",
                 chart_geo_title: "Fokus Geografis (Tier-1 Indo)",
                 chart_market_title: "Posisi Pasar Strategis",
@@ -447,7 +448,7 @@
                 q3_title: "Q3: Ekosistem", q3_desc: "Integrasi Slack/Notion dan plugin kolaborasi tim.",
                 footer_quote: "Menghadirkan transkripsi cerdas dengan privasi penuh dan biaya yang adil.",
                 // Chart Labels
-                cl_hybrid_remote: "Hybrid/Remote", cl_hybrid_onsite: "Kantor (On-Site)",
+                cl_pay_flex: "Fleksibel (Pay-as-you-go)", cl_pay_flat: "Langganan Tetap",
                 cl_cost_saas: "SaaS Biasa", cl_cost_wicarai: "Wicarai",
                 cl_cost_sub: "Langganan", cl_cost_api: "Biaya API",
                 cl_geo_label: "Kepadatan User"
@@ -464,10 +465,10 @@
                 vision_card_desc_1: "Users are tired of paying expensive monthly subscriptions for software they rarely use.",
                 vision_card_desc_2: "Wicarai is a utility: **'Pay as you go'** with your own API Keys, plus optional premium features.",
                 chart_cost_title: "Cost Comparison",
-                chart_hybrid_title: "Hybrid Work Trends",
+                chart_pay_title: "Payment Preference (Survey)",
                 target_title: "Target: Technical Professionals",
                 target_desc: "Our focus is on Lead Developers, Freelancers, and Solopreneurs who value data privacy.",
-                pain_1_title: "Budget Efficiency", pain_1_desc: "Avoid flat monthly fees for unpredictable usage.",
+                pain_1_title: "Focus Distraction", pain_1_desc: "90% of respondents feel distracted when taking notes during meetings.",
                 pain_2_title: "Absolute Privacy", pain_2_desc: "Ensure confidential data (NDA) never leaks to public servers.",
                 chart_geo_title: "Geographic Focus (Tier-1 Indo)",
                 chart_market_title: "Strategic Market Position",
@@ -484,7 +485,7 @@
                 q3_title: "Q3: Ecosystem", q3_desc: "Slack/Notion Integration and Team Collaboration plugins.",
                 footer_quote: "Delivering intelligent transcription with full privacy and fair pricing.",
                 // Chart Labels
-                cl_hybrid_remote: "Hybrid/Remote", cl_hybrid_onsite: "Office (On-Site)",
+                cl_pay_flex: "Flexible (Pay-as-you-go)", cl_pay_flat: "Flat Subscription",
                 cl_cost_saas: "Standard SaaS", cl_cost_wicarai: "Wicarai",
                 cl_cost_sub: "Subscription", cl_cost_api: "API Cost",
                 cl_geo_label: "User Density"
@@ -531,17 +532,17 @@
         Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
         Chart.defaults.borderColor = 'rgba(255,255,255,0.1)';
 
-        let chartHybrid, chartCost, chartGeo;
+        let chartPay, chartCost, chartGeo;
 
         function initCharts() {
-            // 1. Hybrid Work Chart
-            const ctxHybrid = document.getElementById('hybridWorkChart').getContext('2d');
-            chartHybrid = new Chart(ctxHybrid, {
+            // 1. Payment Preference Chart (Replaced Hybrid Work)
+            const ctxPay = document.getElementById('hybridWorkChart').getContext('2d');
+            chartPay = new Chart(ctxPay, {
                 type: 'doughnut',
                 data: {
-                    labels: [dictionary[currentLang].cl_hybrid_remote, dictionary[currentLang].cl_hybrid_onsite],
+                    labels: [dictionary[currentLang].cl_pay_flex, dictionary[currentLang].cl_pay_flat],
                     datasets: [{
-                        data: [60, 40],
+                        data: [80, 20], // 80% Flexible (Pay as you go + Lifetime), 20% Subscription
                         backgroundColor: ['#6366F1', '#1E293B'],
                         borderWidth: 0,
                         hoverOffset: 10
@@ -612,8 +613,8 @@
 
         function updateCharts() {
             // Update Labels
-            chartHybrid.data.labels = [dictionary[currentLang].cl_hybrid_remote, dictionary[currentLang].cl_hybrid_onsite];
-            chartHybrid.update();
+            chartPay.data.labels = [dictionary[currentLang].cl_pay_flex, dictionary[currentLang].cl_pay_flat];
+            chartPay.update();
 
             chartCost.data.labels = [dictionary[currentLang].cl_cost_saas, dictionary[currentLang].cl_cost_wicarai];
             chartCost.data.datasets[0].label = dictionary[currentLang].cl_cost_sub;
@@ -652,7 +653,7 @@
             },
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
-            height: 300,
+            height: 500,
             showlegend: false
         };
 
