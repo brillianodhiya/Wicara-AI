@@ -1,0 +1,55 @@
+/* Override dark mode styles */
+:root {
+  color-scheme: light;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: #ffffff;
+  color: #262b40;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+div {
+  color: #262b40;
+}
+
+.text-white,
+.text-white * {
+  color: #ffffff;
+}
+
+.text-accent-light,
+.text-accent-light * {
+  color: #a8c4ec;
+}
+
+/* Specific overrides for dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #ffffff;
+    color: #262b40;
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  div {
+    color: #262b40;
+  }
+}
