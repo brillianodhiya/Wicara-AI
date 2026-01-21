@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { transcribeAudio } from '../services/assemblyAI';
-import { AssemblyAI } from 'assemblyai'; // Import type
+
 
 export const useTranscriber = () => {
     const [isTranscribing, setIsTranscribing] = useState(false);

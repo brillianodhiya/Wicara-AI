@@ -9,7 +9,7 @@ import { TranscriptViewer } from './TranscriptViewer';
 const { Title, Text } = Typography;
 
 export const RecordingInterface: React.FC = () => {
-    const [apiKey, setApiKey] = useState('');
+    const [apiKey, setApiKey] = useState(import.meta.env.VITE_ASSEMBLYAI_API_KEY || '');
     const {
         isRecording,
         recordingTime,
