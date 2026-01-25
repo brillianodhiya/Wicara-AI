@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { ConfigProvider, Layout, theme, Dropdown, Avatar, Space, Spin } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import { ConfigProvider, Layout, theme, Dropdown, Avatar, Space, Spin, Button } from 'antd';
+import { UserOutlined, LogoutOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons';
 import { RecordingInterface } from './components/RecordingInterface';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { MeetingHistory } from './pages/MeetingHistory';
 
 const { Header, Content, Footer } = Layout;
 
-type Page = 'home' | 'settings';
+type Page = 'home' | 'settings' | 'history';
 
 // Main App Content (Protected)
 function AppContent() {
@@ -34,6 +35,12 @@ function AppContent() {
   // User Menu
   const userMenuItems = [
     {
+      key: 'history',
+      icon: <HistoryOutlined />,
+      label: 'Riwayat Meeting',
+      onClick: () => setCurrentPage('history'),
+    },
+    {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
@@ -55,8 +62,10 @@ function AppContent() {
     switch (currentPage) {
       case 'settings':
         return <SettingsPage onBack={() => setCurrentPage('home')} />;
+      case 'history':
+        return <MeetingHistory onBack={() => setCurrentPage('home')} />;
       default:
-        return <RecordingInterface />;
+        return <RecordingInterface onSaved={() => setCurrentPage('history')} />;
     }
   };
 
@@ -69,12 +78,22 @@ function AppContent() {
         >
           🎙️ Wicara AI <span style={{ fontSize: '12px', fontWeight: 'normal', opacity: 0.8 }}>MVP</span>
         </div>
-        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-          <Space style={{ cursor: 'pointer', color: 'white' }}>
-            <Avatar icon={<UserOutlined />} />
-            <span>{user.email}</span>
-          </Space>
-        </Dropdown>
+        <Space>
+          <Button
+            type="text"
+            icon={<HistoryOutlined />}
+            onClick={() => setCurrentPage('history')}
+            style={{ color: 'white' }}
+          >
+            Riwayat
+          </Button>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Space style={{ cursor: 'pointer', color: 'white' }}>
+              <Avatar icon={<UserOutlined />} />
+              <span>{user.email}</span>
+            </Space>
+          </Dropdown>
+        </Space>
       </Header>
       <Content style={{ padding: '0 48px', marginTop: '32px' }}>
         <div

@@ -1,19 +1,50 @@
 import { useState } from 'react';
 import { generateMeetingSummary } from '../services/gemini';
+import { generateOllamaSummary, type OllamaConfig } from '../services/ollama';
+
+export type AIProvider = 'gemini' | 'ollama';
+
+interface SummaryConfig {
+    provider: AIProvider;
+    geminiApiKey?: string;
+    geminiModel?: string;
+    ollamaConfig?: OllamaConfig;
+}
 
 export const useSummary = () => {
     const [isSummarizing, setIsSummarizing] = useState(false);
     const [summary, setSummary] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const requestSummary = async (apiKey: string, transcriptText: string, modelName?: string) => {
+    const requestSummary = async (transcriptText: string, config: SummaryConfig) => {
         setIsSummarizing(true);
         setError(null);
+
         try {
             if (!transcriptText || transcriptText.trim().length === 0) {
                 throw new Error("Transcript is empty. Please transcribe audio first.");
             }
-            const result = await generateMeetingSummary(apiKey, transcriptText, modelName);
+
+            let result: string;
+
+            if (config.provider === 'gemini') {
+                if (!config.geminiApiKey) {
+                    throw new Error("Gemini API Key is required");
+                }
+                result = await generateMeetingSummary(
+                    config.geminiApiKey,
+                    transcriptText,
+                    config.geminiModel
+                );
+            } else if (config.provider === 'ollama') {
+                if (!config.ollamaConfig?.model) {
+                    throw new Error("Ollama model is required");
+                }
+                result = await generateOllamaSummary(transcriptText, config.ollamaConfig);
+            } else {
+                throw new Error("Invalid AI provider");
+            }
+
             setSummary(result);
         } catch (err: any) {
             setError(err.message || 'Summary generation failed');
@@ -22,10 +53,16 @@ export const useSummary = () => {
         }
     };
 
+    const clearSummary = () => {
+        setSummary(null);
+        setError(null);
+    };
+
     return {
         isSummarizing,
         summary,
         error,
-        requestSummary
+        requestSummary,
+        clearSummary
     };
 };
