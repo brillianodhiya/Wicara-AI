@@ -2,9 +2,24 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Custom branding plugin
+const brandingPlugin = () => ({
+  name: 'branding-plugin',
+  buildStart() {
+    console.log('\n')
+    console.log('  ╔═══════════════════════════════════════╗')
+    console.log('  ║                                       ║')
+    console.log('  ║   🎙️  Wicara AI by Kanrishaurus       ║')
+    console.log('  ║                                       ║')
+    console.log('  ╚═══════════════════════════════════════╝')
+    console.log('\n')
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    brandingPlugin(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -70,5 +85,19 @@ export default defineConfig({
   base: './',
   server: {
     allowedHosts: ["silent-island-001d.tunnl.gg"]
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor libraries into separate chunks
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-antd': ['antd', '@ant-design/icons'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-ai': ['@google/generative-ai', 'assemblyai'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 900 // Increase limit slightly for remaining chunks
   }
 })
