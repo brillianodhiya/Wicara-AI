@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Wicara AI - Privacy-First Meeting Assistant",
+  "author": "Kanrishaurus",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -22,7 +24,8 @@
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "!**/*.map"
     ],
     "win": {
       "target": "nsis"
