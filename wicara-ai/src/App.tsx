@@ -1,23 +1,16 @@
-import { useState } from 'react';
-import { ConfigProvider, Layout, theme, Dropdown, Avatar, Space, Spin, Button } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined, HistoryOutlined } from '@ant-design/icons';
-import { RecordingInterface } from './components/RecordingInterface';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ConfigProvider, Spin } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { MainLayout } from './layouts/MainLayout';
 import { AuthPage } from './pages/AuthPage';
-import { SettingsPage } from './pages/SettingsPage';
+import { Dashboard } from './pages/Dashboard';
+import { RecordPage } from './pages/RecordPage';
 import { MeetingHistory } from './pages/MeetingHistory';
+import { SettingsPage } from './pages/SettingsPage';
 
-const { Header, Content, Footer } = Layout;
-
-type Page = 'home' | 'settings' | 'history';
-
-// Main App Content (Protected)
-function AppContent() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const { user, loading, signOut } = useAuth();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+// Protected Route wrapper
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -27,90 +20,39 @@ function AppContent() {
     );
   }
 
-  // Show Auth Page if not logged in
   if (!user) {
-    return <AuthPage />;
+    return <Navigate to="/login" replace />;
   }
 
-  // User Menu
-  const userMenuItems = [
-    {
-      key: 'history',
-      icon: <HistoryOutlined />,
-      label: 'Riwayat Meeting',
-      onClick: () => setCurrentPage('history'),
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-      onClick: () => setCurrentPage('settings'),
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Logout',
-      onClick: signOut,
-    },
-  ];
+  return <>{children}</>;
+}
 
-  // Render current page content
-  const renderPageContent = () => {
-    switch (currentPage) {
-      case 'settings':
-        return <SettingsPage onBack={() => setCurrentPage('home')} />;
-      case 'history':
-        return <MeetingHistory onBack={() => setCurrentPage('home')} />;
-      default:
-        return <RecordingInterface onSaved={() => setCurrentPage('history')} />;
-    }
-  };
-
+// App Content
+function AppContent() {
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div
-          style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}
-          onClick={() => setCurrentPage('home')}
+    <BrowserRouter>
+      <Routes>
+        {/* Public Route */}
+        <Route path="/login" element={<AuthPage />} />
+
+        {/* Protected Routes */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
         >
-          🎙️ Wicara AI <span style={{ fontSize: '12px', fontWeight: 'normal', opacity: 0.8 }}>MVP</span>
-        </div>
-        <Space>
-          <Button
-            type="text"
-            icon={<HistoryOutlined />}
-            onClick={() => setCurrentPage('history')}
-            style={{ color: 'white' }}
-          >
-            Riwayat
-          </Button>
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer', color: 'white' }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>{user.email}</span>
-            </Space>
-          </Dropdown>
-        </Space>
-      </Header>
-      <Content style={{ padding: '0 48px', marginTop: '32px' }}>
-        <div
-          style={{
-            background: colorBgContainer,
-            minHeight: 280,
-            padding: 24,
-            borderRadius: borderRadiusLG,
-          }}
-        >
-          {renderPageContent()}
-        </div>
-      </Content>
-      <Footer style={{ textAlign: 'center' }}>
-        Wicara AI ©{new Date().getFullYear()} - Privacy First Meeting Assistant
-      </Footer>
-    </Layout>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/record" element={<RecordPage />} />
+          <Route path="/history" element={<MeetingHistory />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

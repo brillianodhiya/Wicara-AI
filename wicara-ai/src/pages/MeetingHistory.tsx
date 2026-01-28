@@ -5,8 +5,7 @@ import {
     SearchOutlined,
     FileTextOutlined,
     CalendarOutlined,
-    ClockCircleOutlined,
-    ArrowLeftOutlined
+    ClockCircleOutlined
 } from '@ant-design/icons';
 import { useMeetings } from '../hooks/useMeetings';
 import { type Meeting, base64ToBlob } from '../services/meetings';
@@ -14,12 +13,7 @@ import { MarkdownViewer } from '../components/MarkdownViewer';
 
 const { Title, Text, Paragraph } = Typography;
 
-interface MeetingHistoryProps {
-    onBack: () => void;
-    onOpenMeeting?: (meeting: Meeting) => void;
-}
-
-export const MeetingHistory: React.FC<MeetingHistoryProps> = ({ onBack, onOpenMeeting: _onOpenMeeting }) => {
+export const MeetingHistory: React.FC = () => {
     const { meetings, loading, searchQuery, removeMeeting, search } = useMeetings();
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [detailVisible, setDetailVisible] = useState(false);
@@ -66,11 +60,7 @@ export const MeetingHistory: React.FC<MeetingHistoryProps> = ({ onBack, onOpenMe
     };
 
     return (
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-            <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ marginBottom: 24 }}>
-                Kembali
-            </Button>
-
+        <div>
             <Card>
                 <Space direction="vertical" style={{ width: '100%' }}>
                     <Title level={3}>📋 Riwayat Meeting</Title>

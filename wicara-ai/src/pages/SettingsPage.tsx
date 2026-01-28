@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Typography, Space, Divider, message, Alert, Select } from 'antd';
-import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, ArrowLeftOutlined, AudioOutlined, RobotOutlined } from '@ant-design/icons';
+import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, AudioOutlined, RobotOutlined } from '@ant-design/icons';
 import { useApiKeys } from '../hooks/useApiKeys';
 
 const { Title, Text } = Typography;
@@ -20,11 +20,7 @@ const LLM_PROVIDERS = [
     // Future: { value: 'anthropic', label: 'Anthropic Claude', description: 'Claude API' },
 ];
 
-interface SettingsPageProps {
-    onBack: () => void;
-}
-
-export const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
+export const SettingsPage: React.FC = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const { keys, loaded, saveKeys, clearKeys } = useApiKeys();
@@ -135,11 +131,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
     };
 
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto' }}>
-            <Button icon={<ArrowLeftOutlined />} onClick={onBack} style={{ marginBottom: 24 }}>
-                Kembali
-            </Button>
-
+        <div>
             <Card>
                 <Title level={3}>⚙️ Pengaturan</Title>
 
