@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Typography, Tabs, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +8,15 @@ const { Title, Text } = Typography;
 
 export const AuthPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
-    const { signIn, signUp } = useAuth();
+    const { signIn, signUp, user } = useAuth(); // Added user
+    const navigate = useNavigate();
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (user) {
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     const handleLogin = async (values: { email: string; password: string }) => {
         setLoading(true);
@@ -18,6 +27,7 @@ export const AuthPage: React.FC = () => {
             message.error(error.message);
         } else {
             message.success('Login berhasil!');
+            navigate('/'); // Explicit redirect
         }
     };
 
@@ -30,6 +40,8 @@ export const AuthPage: React.FC = () => {
             message.error(error.message);
         } else {
             message.success('Registrasi berhasil! Silakan cek email untuk verifikasi.');
+            // Usually register doesn't log you in immediately depending on Supabase config (confirm email), 
+            // but if it does, the useEffect will handle it.
         }
     };
 
