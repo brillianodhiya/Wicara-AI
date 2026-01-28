@@ -154,10 +154,10 @@ export const SettingsPage: React.FC = () => {
                                 options={VOICE_PROVIDERS.map(p => ({
                                     value: p.value,
                                     label: (
-                                        <Space direction="vertical" size={0}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <Text strong>{p.label}</Text>
-                                            <Text type="secondary" style={{ fontSize: 12 }}>{p.description}</Text>
-                                        </Space>
+                                            <Text type="secondary" ellipsis style={{ fontSize: 12 }}>{p.description}</Text>
+                                        </div>
                                     )
                                 }))}
                                 style={{ width: '100%' }}
@@ -175,10 +175,10 @@ export const SettingsPage: React.FC = () => {
                                 options={LLM_PROVIDERS.map(p => ({
                                     value: p.value,
                                     label: (
-                                        <Space direction="vertical" size={0}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <Text strong>{p.label}</Text>
-                                            <Text type="secondary" style={{ fontSize: 12 }}>{p.description}</Text>
-                                        </Space>
+                                            <Text type="secondary" ellipsis style={{ fontSize: 12 }}>{p.description}</Text>
+                                        </div>
                                     )
                                 }))}
                                 style={{ width: '100%' }}
@@ -189,7 +189,7 @@ export const SettingsPage: React.FC = () => {
 
                     <Divider />
 
-                    <Space>
+                    <Space wrap style={{ width: '100%', justifyContent: 'center' }}>
                         <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
                             Simpan Settings
                         </Button>

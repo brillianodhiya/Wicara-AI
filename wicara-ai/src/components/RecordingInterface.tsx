@@ -109,7 +109,7 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
                     {formatTime(recordingTime)}
                 </Text>
 
-                <Space>
+                <Space wrap style={{ justifyContent: 'center', width: '100%' }}>
                     {!isRecording ? (
                         <Button
                             type="primary"
