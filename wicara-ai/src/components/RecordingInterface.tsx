@@ -92,7 +92,7 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
 
     return (
         <Card style={{ maxWidth: 800, margin: '20px auto', textAlign: 'center' }}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
                 <Title level={2}>🎙️ Wicara AI Recorder</Title>
 
                 <div style={{ minHeight: '100px', background: '#f0f2f5', borderRadius: '8px', padding: '10px' }}>
@@ -187,7 +187,7 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
                     onSummaryGenerated={setCurrentSummary}
                 />
 
-            </Space>
+            </div>
 
             {/* Save Modal */}
             <Modal

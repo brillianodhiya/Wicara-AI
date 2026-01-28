@@ -336,6 +336,16 @@ body {
     height: 100px;
     font-size: 32px;
   }
+
+  /* Reduce card padding on mobile to save space */
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* Ensure audio player fits */
+  audio {
+    max-width: 100%;
+  }
 }
 
 /* Meeting List */

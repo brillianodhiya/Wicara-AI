@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Button, Typography, Space, Divider, message, Alert, Select } from 'antd';
-import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, AudioOutlined, RobotOutlined } from '@ant-design/icons';
+import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, AudioOutlined, RobotOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useApiKeys } from '../hooks/useApiKeys';
 
 const { Title, Text } = Typography;
@@ -135,13 +135,23 @@ export const SettingsPage: React.FC = () => {
             <Card>
                 <Title level={3}>⚙️ Pengaturan</Title>
 
-                <Alert
-                    message="Bring Your Own Key (BYOK)"
-                    description="API Keys disimpan secara lokal di browser Anda. Wicara AI tidak menyimpan keys di server."
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 24 }}
-                />
+                <div style={{
+                    padding: '12px 16px',
+                    marginBottom: 24,
+                    color: '#000000d9',
+                    background: '#e6f7ff',
+                    border: '1px solid #91caff',
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'start',
+                    gap: 12
+                }}>
+                    <InfoCircleOutlined style={{ color: '#1677ff', fontSize: 20, marginTop: 4 }} />
+                    <div>
+                         <div style={{ fontWeight: 600, marginBottom: 4 }}>Bring Your Own Key (BYOK)</div>
+                         <div style={{ fontSize: 14 }}>API Keys disimpan secara lokal di browser Anda. Wicara AI tidak menyimpan keys di server.</div>
+                    </div>
+                </div>
 
                 <Form form={form} layout="vertical" onFinish={handleSave}>
 
@@ -151,8 +161,10 @@ export const SettingsPage: React.FC = () => {
                             <Select
                                 value={voiceProvider}
                                 onChange={setVoiceProvider}
+                                optionLabelProp="shortLabel"
                                 options={VOICE_PROVIDERS.map(p => ({
                                     value: p.value,
+                                    shortLabel: p.label,
                                     label: (
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <Text strong>{p.label}</Text>
@@ -172,8 +184,10 @@ export const SettingsPage: React.FC = () => {
                             <Select
                                 value={llmProvider}
                                 onChange={setLlmProvider}
+                                optionLabelProp="shortLabel"
                                 options={LLM_PROVIDERS.map(p => ({
                                     value: p.value,
+                                    shortLabel: p.label,
                                     label: (
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             <Text strong>{p.label}</Text>
