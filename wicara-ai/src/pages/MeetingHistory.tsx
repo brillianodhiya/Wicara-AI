@@ -10,6 +10,7 @@ import {
 import { useMeetings } from '../hooks/useMeetings';
 import { type Meeting, base64ToBlob } from '../services/meetings';
 import { MarkdownViewer } from '../components/MarkdownViewer';
+import { PluginSlot } from '../plugins/core';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -154,6 +155,11 @@ export const MeetingHistory: React.FC = () => {
                             <Tag color={getStatusColor(selectedMeeting.status)}>
                                 {selectedMeeting.status}
                             </Tag>
+                        </Space>
+
+                        {/* Plugin Action Buttons */}
+                        <Space wrap>
+                            <PluginSlot name="meeting-actions" context={{ meeting: selectedMeeting }} />
                         </Space>
 
                         {selectedMeeting.audioUrl && (

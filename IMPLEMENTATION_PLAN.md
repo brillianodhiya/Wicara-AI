@@ -9,14 +9,17 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
 ## **1. Product Roadmap & Phasing**
 
 ### **🎯 Strategic Objectives**
+
 - **Phase 1 (MVP)**: Demo-ready prototype untuk validasi investor & early adopters. Focus on "It Works" & "Unique Value".
 - **Phase 2 (Production)**: Feature parity dengan kompetitor, stability, dan scaling. Focus on "Robustness" & "Retention".
 - **Phase 3 (Enterprise)**: Advanced security, collaboration, dan integration ecosystem. Focus on "Expansion".
 
 ### **✅ Phase 1: MVP Foundation (Week 1-6) - LEAN DEMO**
-*(Features focus: Desktop/Web, Local-first, Core Transcription)*
+
+_(Features focus: Desktop/Web, Local-first, Core Transcription)_
 
 #### **Core Features (Tier 1 - Basic) - LOCAL FIRST**
+
 1. **Local Audio Processing**
    - Record audio dari browser/mobile (Web Audio API / Capacitor Plugin)
    - Client-side audio processing & noise reduction
@@ -58,6 +61,7 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
    - Responsive design (mobile-first)
 
 #### **Plugin Features (Demo Only)**
+
 7. **AI Summary Plugin**
    - Generate meeting summary (AI-powered)
    - Transform ke format:
@@ -80,6 +84,7 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
 **Note:** Core platform FREE dengan BYOK. Plugins berbayar untuk enhanced features.
 
 #### **BYOK Features (Bring Your Own Key)**
+
 10. **API Key Management**
     - User input AssemblyAI, Gemini, & **Ollama Cloud** API keys
     - **Unlimited usage** (sesuai user's API quota)
@@ -99,6 +104,7 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
 ### **🔒 Security Requirements (MVP MUST-HAVE)**
 
 #### **Client-Side Security**
+
 - **Content Security Policy (CSP)** untuk XSS prevention
 - **API Key Encryption** dengan AES-GCM
 - **Secure Memory Management** untuk sensitive data
@@ -107,6 +113,7 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
 - **Usage Monitoring** untuk external API transparency (BYOK)
 
 #### **Server-Side Security**
+
 - **Enhanced RLS Policies** di Supabase
 - **Request Signature Validation**
 - **CORS & Origin Validation**
@@ -114,13 +121,16 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
 - **Environment Variable Protection**
 
 #### **Network Security**
+
 - **HTTPS Only** (HSTS enforcement)
 - **API Call Signing** untuk integrity
 - **Origin Validation** untuk prevent abuse
 - **Request/Response Encryption**
 
 ### **🚀 Phase 2: Production Features (Post-MVP)**
+
 #### **Feature Expansion**
+
 - **Mobile Native Apps**: Android (.apk) & iOS (.ipa) via Capacitor.
 - **Docker Deployment**: Containerized version for Enterprise/Self-host.
 - **Advanced Integrations**:
@@ -133,6 +143,7 @@ Dokumen ini adalah master plan teknis untuk membangun **Wicara AI** dari tahap M
   - Developer Portal.
 
 #### **Technical Hardening**
+
 - Voice fingerprint/biometric speaker ID
 - Collaboration hub untuk tim
 - Advanced sentiment analysis
@@ -314,12 +325,197 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 
 ---
 
+## **2.5 Plugin System Architecture** 🔌
+
+### **Design Philosophy**
+
+Sistem plugin Wicara AI menggunakan arsitektur **Hook + Slot** yang memungkinkan plugin untuk:
+
+1. **Hook System**: Mendaftarkan logic ke event tertentu (data processing, export, integration).
+2. **Slot System**: Menyisipkan komponen UI ke area yang sudah ditentukan (action buttons, panels).
+
+Dengan pendekatan ini, **app core tidak perlu mengetahui plugin apa yang terinstall**. Plugin aktif akan mendaftarkan dirinya sendiri.
+
+---
+
+### **2.5.1 MVP: Bundled Plugins (Current Phase)**
+
+Pada fase MVP, semua plugin **dikompilasi bersama dengan app**. Ini mempermudah development dan memastikan performa optimal.
+
+#### **Plugin Structure**
+
+```
+src/plugins/
+├── core/
+│   ├── types.ts          # Plugin interfaces
+│   ├── PluginManager.ts  # Hook & Slot registry
+│   └── usePlugins.ts     # React hook for plugins
+├── export-summary/       # First plugin
+│   ├── index.ts          # Plugin entry point
+│   ├── ExportModal.tsx   # UI component
+│   └── handlers.ts       # Export logic (PDF, TXT, DOCX)
+└── registry.ts           # All available plugins
+```
+
+#### **Plugin Interface (TypeScript)**
+
+```typescript
+interface PluginMeta {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+  icon: string;
+  category: "export" | "integration" | "ai" | "utility";
+  price: number | "free";
+}
+
+interface PluginDefinition {
+  meta: PluginMeta;
+  hooks?: Record<string, HookHandler>;
+  slots?: Record<string, React.ComponentType<any>>;
+  onInstall?: () => void;
+  onUninstall?: () => void;
+}
+```
+
+#### **Hook System**
+
+```typescript
+// App defines available hooks
+const AVAILABLE_HOOKS = [
+  "meeting:after-save", // Triggered after meeting saved
+  "transcript:before-display", // Modify transcript before render
+  "export:formats", // Add export format options
+  "summary:generate", // Custom summary generation
+] as const;
+
+// Plugin registers to hooks
+ExportPlugin.hooks = {
+  "export:formats": (formats) => {
+    formats.push({ id: "pdf", label: "PDF", handler: exportToPdf });
+    formats.push({ id: "docx", label: "Word", handler: exportToDocx });
+    return formats;
+  },
+};
+
+// App triggers hook (no if/else needed)
+const formats = PluginManager.trigger("export:formats", []);
+```
+
+#### **Slot System**
+
+```tsx
+// App provides slot points in UI
+<PluginSlot name="meeting-actions" context={{ meeting }} />;
+
+// Plugin fills the slot
+ExportPlugin.slots = {
+  "meeting-actions": ({ meeting }) => (
+    <Button onClick={() => openExportModal(meeting)}>📤 Export</Button>
+  ),
+};
+```
+
+#### **Installed Plugins Storage**
+
+MVP menggunakan **localStorage** untuk menyimpan daftar plugin yang diinstall:
+
+```typescript
+// Key: 'wicara:installed-plugins'
+// Value: ['export-summary', 'notion-sync', ...]
+```
+
+---
+
+### **2.5.2 Post-Launch: Remote Plugins (Future Upgrade)**
+
+Setelah MVP sukses dan ada demand untuk third-party plugins, sistem akan di-upgrade ke **Remote Plugin Loading**.
+
+#### **Architecture Changes**
+
+| Aspect            | MVP (Bundled)          | Post-Launch (Remote) |
+| ----------------- | ---------------------- | -------------------- |
+| **Plugin Source** | Compiled with app      | Fetched from CDN/API |
+| **Install**       | Toggle in localStorage | Download & cache     |
+| **Update**        | App rebuild required   | Hot-reload possible  |
+| **Third-Party**   | Not supported          | Developer portal     |
+
+#### **Remote Plugin Loading Flow**
+
+```
+┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
+│   User      │────▶│  Plugin API     │────▶│   CDN       │
+│  Installs   │     │  (Supabase)     │     │  (Plugin    │
+│  Plugin     │     │                 │     │   Bundle)   │
+└─────────────┘     └─────────────────┘     └──────┬──────┘
+                                                   │
+                                                   ▼
+                              ┌─────────────────────────────┐
+                              │   Dynamic Import            │
+                              │   import(pluginUrl)         │
+                              │   + Sandbox Execution       │
+                              └─────────────────────────────┘
+```
+
+#### **Security Considerations for Remote Plugins**
+
+- **Code Signing**: Plugin bundles harus di-sign oleh Wicara.
+- **Sandboxing**: Execute plugin dalam isolated context (iframe/worker).
+- **Permission System**: Plugin harus deklarasi permissions (storage, network, etc).
+- **Review Process**: Third-party plugins lewat review sebelum published.
+
+#### **Database Schema for Remote Plugins**
+
+```sql
+-- Plugin Registry (managed by Wicara)
+CREATE TABLE plugins (
+  id UUID PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  version TEXT NOT NULL,
+  bundle_url TEXT NOT NULL,
+  icon_url TEXT,
+  category TEXT,
+  price_idr INTEGER DEFAULT 0,
+  price_usd DECIMAL(10,2) DEFAULT 0,
+  is_official BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- User Installed Plugins
+CREATE TABLE user_plugins (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plugin_id UUID REFERENCES plugins(id),
+  installed_at TIMESTAMP DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT true,
+  UNIQUE(user_id, plugin_id)
+);
+```
+
+#### **Migration Path: Bundled → Remote**
+
+1. **Phase 1**: Bundled plugins dengan interface yang sama.
+2. **Phase 2**: Plugin API + CDN hosting untuk official plugins.
+3. **Phase 3**: Developer portal untuk third-party submissions.
+4. **Phase 4**: Payment integration untuk premium plugins.
+
+> [!IMPORTANT]
+> Arsitektur Hook + Slot yang kita bangun di MVP **sudah compatible** dengan Remote Plugins. Tidak perlu rewrite, hanya perlu menambahkan loader dynamic.
+
+---
+
 ## **3. Development Timeline (4-6 Minggu)**
 
 ### **Week 1: Foundation & Setup**
+
 **Goal:** Project setup (Vite + Electron + Capacitor) + Basic UI + Auth
 
 #### **Tasks:**
+
 - [ ] **Setup Deno 2.6.3 / Node** environment
 - [ ] Initialize **Vite + React 19** project
 - [ ] Configure **Electron** main script
@@ -329,6 +525,7 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 - [ ] Dockerfile creation
 
 #### **Deliverables:**
+
 - ✅ Tech stack ready (Web, Desktop, Mobile ready)
 - ✅ Authentication working
 - ✅ Responsive UI Skeleton
@@ -336,9 +533,11 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ---
 
 ### **Week 2: Audio Recording & Upload**
+
 **Goal:** Capture audio (Web/Desktop/Mobile) + Upload
 
 #### **Tasks:**
+
 - [ ] Web Audio API (Web/Electron)
 - [ ] **Capacitor Voice Recorder Plugin** (Mobile)
 - [ ] Unified Recording Hook
@@ -346,59 +545,71 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 - [ ] Meetings CRUD
 
 #### **Deliverables:**
+
 - ✅ Audio recorder working on all platforms
 - ✅ Cloud sync
 
 ---
 
 ### **Week 3: Transcription & Diarization**
+
 **Goal:** Integrasi AssemblyAI + Transcript UI
 
 #### **Tasks:**
+
 - [ ] AssemblyAI API integration
 - [ ] Speaker handling logic
 - [ ] Transcript Viewer UI
 - [ ] Search functionality
 
 #### **Deliverables:**
+
 - ✅ Transcription pipeline working
 - ✅ Searchable transcripts
 
 ---
 
 ### **Week 4: BYOK & Security** 🔐
+
 **Goal:** Secure Key Management
 
 #### **Tasks:**
+
 - [ ] Web Crypto API implementation
 - [ ] Secure Storage (Capacitor Secure Storage for Mobile)
 - [ ] API Key Management UI
 - [ ] Ollama Cloud support
 
 #### **Deliverables:**
+
 - ✅ Secure BYOK across platforms
 
 ---
 
 ### **Week 5: AI & Interactive Features**
+
 **Goal:** Creative Output + Player
 
 #### **Tasks:**
+
 - [ ] Gemini & Ollama prompts
 - [ ] Output generation UI
 - [ ] Interactive Audio Player
 - [ ] PDF/TXT Export
 
 #### **Deliverables:**
+
 - ✅ AI Summaries
 - ✅ Interactive Player
 
 ---
 
 ### **Week 6: Packaging & Deployment**
+
 **Goal:** Build ALL artifacts
 
 #### **Tasks:**
+
 - [ ] **Web:** Deploy to Vercel
 - [ ] **Desktop:** Build .exe (Electron Builder)
 - [ ] **Mobile:** Build .apk (Capacitor Android)
@@ -406,6 +617,7 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 - [ ] Demo Prep
 
 #### **Deliverables:**
+
 - ✅ **Cloud URL**
 - ✅ **Installer (.exe)**
 - ✅ **Mobile App (.apk)**
@@ -416,20 +628,26 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ## **4. Demo Scenarios untuk Investor**
 
 ### **Scenario 1: True Multi-Platform**
+
 **Duration:** 2-3 menit
+
 1. **Desktop:** Open .exe, start recording.
 2. **Mobile:** Open App, show synced meeting (if online) or local recording.
 3. **Web:** Access dashboard from browser.
 
 ### **Scenario 2: Basic Flow (Tier 1 - Free)**
+
 **Duration:** 3-4 menit
+
 1. **Login**
 2. **Record Audio**
 3. **View Transcript** (Speaker Diarization)
 4. **Search**
 
 ### **Scenario 3: BYOK with Ollama Cloud** 🔐
+
 **Duration:** 3-4 menit
+
 1. **Settings** → Input Ollama Cloud API Key.
 2. **Toggle BYOK Mode**.
 3. **Process Meeting** using Ollama.
@@ -440,11 +658,13 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ## **5. Success Metrics untuk Demo**
 
 ### **Technical Metrics**
+
 - ✅ Transcription accuracy: >90%
 - ✅ App Load Time: <1s
 - ✅ Consistent Experience across Web, Desktop, Mobile
 
 ### **Business Metrics**
+
 - ✅ **Ubiquity:** "We are everywhere our user is."
 - ✅ **Flexibility:** Cloud or Local, your choice.
 
@@ -453,10 +673,12 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ## **6. Resource Requirements**
 
 **Solo Developer:**
+
 - **Stack:** Vite, React, Electron, Capacitor.
 - **Skills:** TypeScript, React, Cross-platform build tools.
 
 **Services:**
+
 - **Vercel:** Free tier.
 - **Supabase:** Free tier.
 - **AssemblyAI / Gemini / Ollama:** Pay-as-you-go / Free tiers.
@@ -464,12 +686,14 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ---
 
 ## **7. Risk Mitigation**
+
 - **Mobile Native Features:** Use Capacitor community plugins for audio.
 - **Build Complexity:** Automate builds with scripts.
 
 ---
 
 ## **9. Checklist Sebelum Demo**
+
 - [ ] **Web:** Deployed.
 - [ ] **Desktop:** .exe ready.
 - [ ] **Mobile:** .apk ready on reliable device.
@@ -480,6 +704,7 @@ CREATE POLICY "Users can manage own preferences" ON user_preferences
 ## **11. Quick Start Guide (All-in-One)**
 
 ### **Prerequisites**
+
 ```bash
 bun --version
 # Android Studio (for Mobile build)
@@ -487,6 +712,7 @@ bun --version
 ```
 
 ### **Step 1: Setup**
+
 ```bash
 bun create vite wicara-ai --template react-ts
 cd wicara-ai
@@ -496,15 +722,18 @@ npx cap init
 ```
 
 ### **Step 2: Electron Setup**
-*(See previous section for Electron main.cjs setup)*
+
+_(See previous section for Electron main.cjs setup)_
 
 ### **Step 3: Capacitor Setup**
+
 ```bash
 npx cap add android
 # npx cap add ios (if macOS)
 ```
 
 ### **Step 4: Build All**
+
 ```bash
 # Web
 bun run build
@@ -521,7 +750,9 @@ npx cap open android
 ---
 
 ## **Conclusion**
+
 Plan ini sekarang mencakup **5 Target Output**:
+
 1. **Cloud Web** (Vercel)
 2. **Local Source** (Dev)
 3. **Docker Container** (Enterprise)

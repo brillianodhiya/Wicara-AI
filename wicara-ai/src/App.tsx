@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { RecordPage } from './pages/RecordPage';
 import { MeetingHistory } from './pages/MeetingHistory';
 import { SettingsPage } from './pages/SettingsPage';
+import { MarketplacePage } from './pages/MarketplacePage';
 
 // Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -47,6 +48,7 @@ function AppContent() {
           <Route path="/record" element={<RecordPage />} />
           <Route path="/history" element={<MeetingHistory />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
         </Route>
 
         {/* Fallback */}

@@ -1,23 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Form, Input, Button, Typography, Space, Divider, message, Alert, Select } from 'antd';
 import { SaveOutlined, EyeInvisibleOutlined, EyeTwoTone, AudioOutlined, RobotOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useApiKeys } from '../hooks/useApiKeys';
+import { PluginManager } from '../plugins/core/PluginManager';
 
 const { Title, Text } = Typography;
 
-// Provider definitions - extensible for future providers
-const VOICE_PROVIDERS = [
+// Base provider definitions
+const BASE_VOICE_PROVIDERS = [
     { value: 'assemblyai', label: 'AssemblyAI', description: 'Cloud-based transcription with speaker diarization' },
-    // Future: { value: 'whisper', label: 'OpenAI Whisper', description: 'Local or cloud transcription' },
-    // Future: { value: 'deepgram', label: 'Deepgram', description: 'Real-time transcription API' },
 ];
 
 const LLM_PROVIDERS = [
     { value: 'gemini', label: 'Google Gemini', description: 'Cloud AI by Google' },
     { value: 'ollama-local', label: 'Ollama (Local)', description: 'Run LLM locally on your machine' },
     { value: 'ollama-cloud', label: 'Ollama Cloud', description: 'Hosted Ollama service' },
-    // Future: { value: 'openai', label: 'OpenAI GPT', description: 'ChatGPT API' },
-    // Future: { value: 'anthropic', label: 'Anthropic Claude', description: 'Claude API' },
 ];
 
 export const SettingsPage: React.FC = () => {
@@ -29,6 +26,13 @@ export const SettingsPage: React.FC = () => {
     const [voiceProvider, setVoiceProvider] = useState('assemblyai');
     const [llmProvider, setLlmProvider] = useState('gemini');
 
+    // Get voice providers from base + plugins
+    const VOICE_PROVIDERS = useMemo(() => {
+        const baseProviders = [...BASE_VOICE_PROVIDERS];
+        // Trigger plugin hook to add more providers (sync)
+        return PluginManager.triggerSync('settings:voice-providers', baseProviders);
+    }, []);
+
     // Load saved keys when hook is ready
     useEffect(() => {
         if (loaded) {
@@ -37,6 +41,7 @@ export const SettingsPage: React.FC = () => {
                 gemini: keys.gemini,
                 ollamaCloud: keys.ollamaCloud,
                 ollamaEndpoint: keys.ollamaEndpoint || 'http://localhost:11434',
+                elevenlabs: keys.elevenlabs,
             });
         }
     }, [loaded, keys, form]);
@@ -49,6 +54,7 @@ export const SettingsPage: React.FC = () => {
                 gemini: values.gemini || '',
                 ollamaCloud: values.ollamaCloud || '',
                 ollamaEndpoint: values.ollamaEndpoint || 'http://localhost:11434',
+                elevenlabs: values.elevenlabs || '',
             });
             message.success('Settings berhasil disimpan!');
         } catch (error) {
@@ -80,7 +86,19 @@ export const SettingsPage: React.FC = () => {
                         />
                     </Form.Item>
                 );
-            // Future cases here
+            case 'elevenlabs':
+                return (
+                    <Form.Item
+                        name="elevenlabs"
+                        label="ElevenLabs API Key"
+                        extra={<Text type="secondary">Dapatkan di: <a href="https://elevenlabs.io/" target="_blank" rel="noopener noreferrer">elevenlabs.io</a> | Dikelola oleh plugin ElevenLabs Voice</Text>}
+                    >
+                        <Input.Password
+                            placeholder="Masukkan API Key"
+                            iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
+                        />
+                    </Form.Item>
+                );
             default:
                 return <Alert message="Provider belum didukung" type="warning" />;
         }

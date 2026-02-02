@@ -8,7 +8,8 @@ import {
     SettingOutlined,
     UserOutlined,
     LogoutOutlined,
-    MenuOutlined
+    MenuOutlined,
+    ShopOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/layout.css';
@@ -24,6 +25,7 @@ const navItems: NavItem[] = [
     { key: 'home', path: '/', icon: <HomeOutlined />, label: 'Home' },
     { key: 'record', path: '/record', icon: <AudioOutlined />, label: 'Record' },
     { key: 'history', path: '/history', icon: <HistoryOutlined />, label: 'History' },
+    { key: 'marketplace', path: '/marketplace', icon: <ShopOutlined />, label: 'Plugins' },
     { key: 'settings', path: '/settings', icon: <SettingOutlined />, label: 'Settings' },
 ];
 
