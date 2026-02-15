@@ -1,6 +1,6 @@
 // Plugin System Types
 
-export type PluginCategory = 'export' | 'integration' | 'ai' | 'utility';
+export type PluginCategory = 'export' | 'integration' | 'ai' | 'utility' | 'productivity';
 
 export interface PluginMeta {
   id: string;
@@ -34,16 +34,17 @@ export const AVAILABLE_HOOKS = [
   'export:formats',
   'summary:generate',
   'audio:process',
-  'settings:voice-providers',  // Plugins can add voice providers to Settings
+  'settings:voice-providers',
+  'audio:get-stream', // Plugins can provide audio stream (e.g. system audio)
 ] as const;
 
 export type AvailableHook = typeof AVAILABLE_HOOKS[number];
 
 // Available slots in the app
 export const AVAILABLE_SLOTS = [
-  'meeting-actions',
-  'transcript-toolbar',
-  'settings-panel',
+  'meeting-actions', // Actions in meeting details (e.g. Export, Voice)
+  'sidebar-menu',    // Custom sidebar items
+  'recording-options', // Options in recording interface (e.g. System Audio toggle)
 ] as const;
 
 export type AvailableSlot = typeof AVAILABLE_SLOTS[number];

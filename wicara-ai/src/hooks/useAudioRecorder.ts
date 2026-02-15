@@ -1,4 +1,10 @@
 import { useState, useRef, useCallback } from 'react';
+import { PluginManager } from '../plugins/core/PluginManager';
+
+export interface AudioDevice {
+    deviceId: string;
+    label: string;
+}
 
 export interface UseAudioRecorderReturn {
     isRecording: boolean;
@@ -8,6 +14,10 @@ export interface UseAudioRecorderReturn {
     audioBlob: Blob | null;
     clearAudio: () => void;
     visualizerData: Uint8Array;
+    devices: AudioDevice[];
+    selectedDeviceId: string;
+    setSelectedDeviceId: (id: string) => void;
+    getAudioDevices: () => Promise<void>;
 }
 
 export const useAudioRecorder = (): UseAudioRecorderReturn => {
@@ -15,6 +25,9 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     const [recordingTime, setRecordingTime] = useState(0);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [visualizerData, setVisualizerData] = useState<Uint8Array>(new Uint8Array(0));
+    
+    const [devices, setDevices] = useState<AudioDevice[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -24,9 +37,40 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
 
+    const getAudioDevices = useCallback(async () => {
+        try {
+            // Request permission first to get labels
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices
+                .filter(device => device.kind === 'audioinput')
+                .map(device => ({
+                    deviceId: device.deviceId,
+                    label: device.label || `Microphone ${device.deviceId.slice(0, 5)}...`
+                }));
+            
+            setDevices(audioInputs);
+            if (audioInputs.length > 0 && !selectedDeviceId) {
+                setSelectedDeviceId(audioInputs[0].deviceId);
+            }
+        } catch (err) {
+            console.error('Error fetching audio devices:', err);
+        }
+    }, [selectedDeviceId]);
+
     const startRecording = useCallback(async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Check if any plugin wants to provide the stream (e.g. system audio)
+            let stream = await PluginManager.trigger<MediaStream | null>('audio:get-stream', null);
+
+            // Fallback to microphone if no plugin provided stream
+            if (!stream) {
+                const constraints: MediaStreamConstraints = {
+                    audio: selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : true
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+            }
 
             // Audio Visualizer Setup
             const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -39,6 +83,8 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
             audioContextRef.current = audioContext;
             analyserRef.current = analyser;
             sourceRef.current = source;
+            
+            // ... (rest of visualizer setup)
 
             // Update Visualizer
             const updateVisualizer = () => {
@@ -69,7 +115,8 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
                 // Cleanup Audio Context
                 if (requestRef.current) cancelAnimationFrame(requestRef.current);
                 if (audioContextRef.current) audioContextRef.current.close();
-
+                
+                // Stop all tracks
                 stream.getTracks().forEach(track => track.stop());
             };
 
@@ -85,7 +132,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         } catch (err) {
             console.error("Error accessing microphone:", err);
         }
-    }, []);
+    }, [selectedDeviceId]);
 
     const stopRecording = useCallback(() => {
         if (mediaRecorderRef.current && isRecording) {
@@ -111,6 +158,10 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         stopRecording,
         audioBlob,
         clearAudio,
-        visualizerData
+        visualizerData,
+        devices,
+        selectedDeviceId,
+        setSelectedDeviceId,
+        getAudioDevices
     };
 };

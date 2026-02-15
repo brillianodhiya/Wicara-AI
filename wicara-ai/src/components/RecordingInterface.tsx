@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Typography, Space, Input, message, Modal } from 'antd';
+import { Button, Card, Typography, Space, Input, message, Modal, Select } from 'antd';
 import { AudioOutlined, StopOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { useTranscriber } from '../hooks/useTranscriber';
@@ -8,6 +8,7 @@ import { useMeetings } from '../hooks/useMeetings';
 import { blobToBase64 } from '../services/meetings';
 import { AudioVisualizer } from './AudioVisualizer';
 import { TranscriptViewer } from './TranscriptViewer';
+import { PluginSlot } from '../plugins/core/usePlugins';
 
 const { Title, Text } = Typography;
 
@@ -30,11 +31,20 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
         stopRecording,
         audioBlob,
         clearAudio,
-        visualizerData
+        visualizerData,
+        devices,
+        selectedDeviceId,
+        setSelectedDeviceId,
+        getAudioDevices
     } = useAudioRecorder();
 
     const { isTranscribing, transcript, error, startTranscription } = useTranscriber();
     const { addMeeting } = useMeetings();
+
+    // Fetch audio devices on mount
+    useEffect(() => {
+        getAudioDevices();
+    }, [getAudioDevices]);
 
     // Load saved AssemblyAI key from Settings
     useEffect(() => {
@@ -94,6 +104,24 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
         <Card style={{ maxWidth: 800, margin: '20px auto', textAlign: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
                 <Title level={2}>🎙️ Wicara AI Recorder</Title>
+
+                <div style={{ marginBottom: 16 }}>
+                    <PluginSlot name="recording-options" context={{}} />
+                </div>
+
+                {/* Microphone Selection */}
+                {!isRecording && !audioBlob && (
+                    <div style={{ maxWidth: 400, margin: '0 auto', width: '100%' }}>
+                        <Text type="secondary" style={{ display: 'block', marginBottom: 8, textAlign: 'left' }}>Input Device:</Text>
+                        <Select
+                            value={selectedDeviceId}
+                            onChange={setSelectedDeviceId}
+                            options={devices.map(d => ({ label: d.label, value: d.deviceId }))}
+                            style={{ width: '100%' }}
+                            placeholder="Select Microphone"
+                        />
+                    </div>
+                )}
 
                 <div style={{ minHeight: '100px', background: '#f0f2f5', borderRadius: '8px', padding: '10px' }}>
                     {isRecording ? (
