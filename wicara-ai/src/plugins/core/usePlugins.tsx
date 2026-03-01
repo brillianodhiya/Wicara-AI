@@ -1,9 +1,14 @@
-import React, { useSyncExternalStore, useCallback } from 'react';
+import React, { useSyncExternalStore, useCallback, useState, useEffect } from 'react';
 import { PluginManager } from './PluginManager';
 import type { AvailableSlot } from './types';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 // Hook to get all plugins with reactivity
 export function usePlugins() {
+  const { user } = useAuth();
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const subscribe = useCallback((callback: () => void) => {
     // For MVP, we don't have real-time updates
     // This is a placeholder for future reactivity
@@ -20,16 +25,86 @@ export function usePlugins() {
 
   useSyncExternalStore(subscribe, getSnapshot);
 
+  useEffect(() => {
+    if (user) {
+      syncWithDatabase();
+    }
+  }, [user]);
+
+  const syncWithDatabase = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_plugins')
+        .select('plugin_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (data) {
+        const remoteIds = new Set(data.map(d => d.plugin_id));
+        const localIds = PluginManager.getInstalledIds();
+        let changed = false;
+
+        for (const id of remoteIds) {
+          if (!localIds.has(id)) {
+            PluginManager.install(id);
+            changed = true;
+          }
+        }
+
+        for (const id of localIds) {
+          if (!remoteIds.has(id)) {
+            PluginManager.uninstall(id);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          window.dispatchEvent(new Event('storage'));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to sync plugins with DB:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return {
     plugins: PluginManager.getAllPlugins(),
     isInstalled: (id: string) => PluginManager.isInstalled(id),
-    install: (id: string) => {
+    isSyncing,
+    install: async (id: string) => {
       PluginManager.install(id);
       window.dispatchEvent(new Event('storage'));
+
+      if (user) {
+        try {
+          await supabase.from('user_plugins').upsert(
+            { user_id: user.id, plugin_id: id },
+            { onConflict: 'user_id, plugin_id', ignoreDuplicates: true }
+          );
+        } catch (e) {
+          console.error("DB Sync error on install", e);
+        }
+      }
     },
-    uninstall: (id: string) => {
+    uninstall: async (id: string) => {
       PluginManager.uninstall(id);
       window.dispatchEvent(new Event('storage'));
+
+      if (user) {
+        try {
+          await supabase.from('user_plugins')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('plugin_id', id);
+        } catch (e) {
+          console.error("DB Sync error on uninstall", e);
+        }
+      }
     },
   };
 }

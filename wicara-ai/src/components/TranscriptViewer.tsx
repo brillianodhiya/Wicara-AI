@@ -6,19 +6,27 @@ import { useApiKeys } from '../hooks/useApiKeys';
 import { fetchGeminiModels, type GeminiModel } from '../services/gemini';
 import { fetchOllamaModels, checkOllamaHealth, type OllamaModel, OLLAMA_LOCAL_DEFAULT_ENDPOINT, OLLAMA_CLOUD_DEFAULT_ENDPOINT } from '../services/ollama';
 import { MarkdownViewer } from './MarkdownViewer';
+import { PluginSlot } from '../plugins/core';
 
 const { Text } = Typography;
 
 type ProviderOption = 'gemini' | 'ollama-local' | 'ollama-cloud';
+
+export interface TranscriptSession {
+    sessionIndex: number;
+    transcript: any;
+}
 
 interface TranscriptViewerProps {
     transcript: any;
     isLoading: boolean;
     error: string | null;
     onSummaryGenerated?: (summary: string) => void;
+    mode?: 'tabs' | 'transcript-only' | 'summary-only';
+    sessions?: TranscriptSession[];
 }
 
-export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, isLoading, error, onSummaryGenerated: _onSummaryGenerated }) => {
+export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, isLoading, error, onSummaryGenerated, mode = 'tabs', sessions }) => {
     const { keys, loaded } = useApiKeys();
 
     // Provider selection
@@ -39,14 +47,37 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
     const [loadingModels, setLoadingModels] = useState(false);
     const { isSummarizing, summary, error: summaryError, requestSummary, clearSummary } = useSummary();
 
-    // Load saved keys when hook is ready
+    // Notify parent when summary is generated
+    useEffect(() => {
+        if (summary && onSummaryGenerated) {
+            onSummaryGenerated(summary);
+        }
+    }, [summary, onSummaryGenerated]);
+
+    // Load saved keys and provider selection when hook is ready
     useEffect(() => {
         if (loaded) {
             setGeminiKey(keys.gemini || import.meta.env.VITE_GEMINI_API_KEY || '');
             setOllamaApiKey(keys.ollamaCloud || '');
             setOllamaEndpoint(keys.ollamaEndpoint || OLLAMA_LOCAL_DEFAULT_ENDPOINT);
+
+            // Restore saved LLM provider from Settings
+            if (keys.llmProvider) {
+                setProvider(keys.llmProvider as ProviderOption);
+            }
         }
     }, [loaded, keys]);
+
+    // Auto-fetch models when provider and credentials are ready
+    useEffect(() => {
+        if (!loaded) return;
+
+        if (provider === 'gemini' && geminiKey && geminiModels.length === 0) {
+            handleFetchGeminiModels();
+        } else if ((provider === 'ollama-local' || provider === 'ollama-cloud') && ollamaModels.length === 0) {
+            handleFetchOllamaModels();
+        }
+    }, [loaded, provider, geminiKey]);
 
     // Update endpoint based on provider
     useEffect(() => {
@@ -134,7 +165,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
 
     if (isLoading) {
         return (
-            <Card style={{ margin: '20px 0', textAlign: 'center' }}>
+            <Card style={{ textAlign: 'center', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Spin size="large" />
             </Card>
         );
@@ -142,17 +173,51 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
 
     if (error) {
         return (
-            <Alert message="Transcription Error" description={error} type="error" showIcon style={{ margin: '20px 0' }} />
+            <Card style={{ height: '100%' }}>
+                <Alert message="Transcription Error" description={error} type="error" showIcon />
+            </Card>
         );
     }
 
-    if (!transcript) return null;
+    if (!transcript) {
+        return (
+            <Card style={{ height: '100%' }}>
+                <Tabs
+                    defaultActiveKey="1"
+                    items={[
+                        {
+                            key: '1',
+                            label: <span><FileTextOutlined /> Transcript</span>,
+                            children: (
+                                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
+                                    <FileTextOutlined style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }} />
+                                    <div>Belum ada transcript</div>
+                                    <Text type="secondary">Rekam audio lalu klik "Transcribe Now"</Text>
+                                </div>
+                            )
+                        },
+                        {
+                            key: '2',
+                            label: <span><RobotOutlined /> AI Summary</span>,
+                            children: (
+                                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#999' }}>
+                                    <RobotOutlined style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }} />
+                                    <div>Belum ada summary</div>
+                                    <Text type="secondary">Generate setelah transcript tersedia</Text>
+                                </div>
+                            )
+                        }
+                    ]}
+                />
+            </Card>
+        );
+    }
 
-    const transcriptContent = (
+    const renderSingleTranscript = (t: any) => (
         <>
             <List
                 itemLayout="horizontal"
-                dataSource={transcript.utterances || []}
+                dataSource={t.utterances || []}
                 renderItem={(item: any) => (
                     <List.Item>
                         <List.Item.Meta
@@ -163,8 +228,38 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
                     </List.Item>
                 )}
             />
-            {!transcript.utterances && <div style={{ padding: 20 }}><Text>{transcript.text}</Text></div>}
+            {!t.utterances && <div style={{ padding: 20 }}><Text>{t.text}</Text></div>}
         </>
+    );
+
+    const transcriptContent = (
+        <div>
+            {sessions && sessions.length > 1 ? (
+                sessions.map((session) => (
+                    <div key={session.sessionIndex} style={{ marginBottom: 16 }}>
+                        <div style={{ 
+                            padding: '8px 12px', 
+                            background: '#e6f4ff', 
+                            borderRadius: '6px 6px 0 0',
+                            borderBottom: '2px solid #1677ff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8
+                        }}>
+                            <Tag color="blue">Sesi {session.sessionIndex}</Tag>
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                                {session.transcript?.text?.length || 0} karakter
+                            </Text>
+                        </div>
+                        <div style={{ padding: '0 4px' }}>
+                            {renderSingleTranscript(session.transcript)}
+                        </div>
+                    </div>
+                ))
+            ) : (
+                renderSingleTranscript(transcript)
+            )}
+        </div>
     );
 
     const geminiConfig = (
@@ -331,6 +426,8 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
                         block
                     />
 
+                    <PluginSlot name="summary-options" context={{ transcriptText: transcript.text }} />
+
                     {getProviderConfig()}
 
                     <Button
@@ -362,8 +459,26 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
         { key: '2', label: <span><RobotOutlined /> AI Summary</span>, children: summaryContent },
     ];
 
+    if (mode === 'transcript-only') {
+        return (
+            <Card style={{ margin: '20px 0', textAlign: 'left' }}>
+                <div style={{ fontWeight: 600, marginBottom: 12 }}><FileTextOutlined /> Transcript</div>
+                {transcriptContent}
+            </Card>
+        );
+    }
+
+    if (mode === 'summary-only') {
+        return (
+            <Card style={{ textAlign: 'left', height: '100%' }}>
+                <div style={{ fontWeight: 600, marginBottom: 12 }}><RobotOutlined /> AI Summary</div>
+                {summaryContent}
+            </Card>
+        );
+    }
+
     return (
-        <Card style={{ margin: '20px 0', textAlign: 'left' }}>
+        <Card style={{ height: '100%', textAlign: 'left' }}>
             <Tabs defaultActiveKey="1" items={items} />
         </Card>
     );

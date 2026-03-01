@@ -6,6 +6,8 @@ export interface SavedApiKeys {
     ollamaCloud: string;
     ollamaEndpoint: string;
     elevenlabs: string;
+    voiceProvider: string;
+    llmProvider: string;
 }
 
 const STORAGE_KEY = 'wicara_api_keys';
@@ -16,6 +18,8 @@ const defaultKeys: SavedApiKeys = {
     ollamaCloud: '',
     ollamaEndpoint: 'http://localhost:11434',
     elevenlabs: '',
+    voiceProvider: 'assemblyai',
+    llmProvider: 'gemini',
 };
 
 export const useApiKeys = () => {

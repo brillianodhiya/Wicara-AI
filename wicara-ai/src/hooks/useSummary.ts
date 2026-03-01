@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { generateMeetingSummary } from '../services/gemini';
 import { generateOllamaSummary, type OllamaConfig } from '../services/ollama';
+import { PluginManager } from '../plugins/core';
 
 export type AIProvider = 'gemini' | 'ollama';
 
@@ -25,6 +26,13 @@ export const useSummary = () => {
                 throw new Error("Transcript is empty. Please transcribe audio first.");
             }
 
+            // 1. Process prompt through plugins
+            const hookData = await PluginManager.trigger('summary:prompt', {
+                transcriptText,
+                prompt: null as string | null
+            });
+            const finalPrompt = hookData.prompt || undefined;
+
             let result: string;
 
             if (config.provider === 'gemini') {
@@ -34,13 +42,14 @@ export const useSummary = () => {
                 result = await generateMeetingSummary(
                     config.geminiApiKey,
                     transcriptText,
-                    config.geminiModel
+                    config.geminiModel,
+                    finalPrompt
                 );
             } else if (config.provider === 'ollama') {
                 if (!config.ollamaConfig?.model) {
                     throw new Error("Ollama model is required");
                 }
-                result = await generateOllamaSummary(transcriptText, config.ollamaConfig);
+                result = await generateOllamaSummary(transcriptText, config.ollamaConfig, finalPrompt);
             } else {
                 throw new Error("Invalid AI provider");
             }

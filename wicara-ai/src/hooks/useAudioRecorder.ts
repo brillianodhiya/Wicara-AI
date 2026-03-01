@@ -9,9 +9,12 @@ export interface AudioDevice {
 export interface UseAudioRecorderReturn {
     isRecording: boolean;
     recordingTime: number;
+    totalRecordingTime: number;
+    sessionCount: number;
     startRecording: () => Promise<void>;
     stopRecording: () => void;
     audioBlob: Blob | null;
+    getMergedBlob: () => Blob | null;
     clearAudio: () => void;
     visualizerData: Uint8Array;
     devices: AudioDevice[];
@@ -23,11 +26,16 @@ export interface UseAudioRecorderReturn {
 export const useAudioRecorder = (): UseAudioRecorderReturn => {
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
+    const [totalRecordingTime, setTotalRecordingTime] = useState(0);
+    const [sessionCount, setSessionCount] = useState(0);
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [visualizerData, setVisualizerData] = useState<Uint8Array>(new Uint8Array(0));
     
     const [devices, setDevices] = useState<AudioDevice[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+
+    // Accumulated blobs from all sessions
+    const accumulatedBlobsRef = useRef<Blob[]>([]);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -59,6 +67,11 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         }
     }, [selectedDeviceId]);
 
+    const getMergedBlob = useCallback((): Blob | null => {
+        if (accumulatedBlobsRef.current.length === 0) return null;
+        return new Blob(accumulatedBlobsRef.current, { type: 'audio/webm' });
+    }, []);
+
     const startRecording = useCallback(async () => {
         try {
             // Check if any plugin wants to provide the stream (e.g. system audio)
@@ -83,8 +96,6 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
             audioContextRef.current = audioContext;
             analyserRef.current = analyser;
             sourceRef.current = source;
-            
-            // ... (rest of visualizer setup)
 
             // Update Visualizer
             const updateVisualizer = () => {
@@ -109,7 +120,17 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
 
             mediaRecorderRef.current.onstop = () => {
                 const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-                setAudioBlob(blob);
+                
+                // Accumulate this session's blob
+                accumulatedBlobsRef.current.push(blob);
+                
+                // Set audioBlob to the merged version
+                const merged = new Blob(accumulatedBlobsRef.current, { type: 'audio/webm' });
+                setAudioBlob(merged);
+                
+                // Increment session count
+                setSessionCount(prev => prev + 1);
+                
                 chunksRef.current = [];
 
                 // Cleanup Audio Context
@@ -123,10 +144,11 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
             mediaRecorderRef.current.start();
             setIsRecording(true);
 
-            // Timer
+            // Timer - continues from totalRecordingTime
             setRecordingTime(0);
             timerRef.current = window.setInterval(() => {
                 setRecordingTime(prev => prev + 1);
+                setTotalRecordingTime(prev => prev + 1);
             }, 1000);
 
         } catch (err) {
@@ -146,17 +168,23 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     }, [isRecording]);
 
     const clearAudio = useCallback(() => {
+        accumulatedBlobsRef.current = [];
         setAudioBlob(null);
         setRecordingTime(0);
+        setTotalRecordingTime(0);
+        setSessionCount(0);
         setVisualizerData(new Uint8Array(0));
     }, []);
 
     return {
         isRecording,
         recordingTime,
+        totalRecordingTime,
+        sessionCount,
         startRecording,
         stopRecording,
         audioBlob,
+        getMergedBlob,
         clearAudio,
         visualizerData,
         devices,

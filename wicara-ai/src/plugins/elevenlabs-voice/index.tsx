@@ -50,7 +50,7 @@ export const ElevenLabsVoicePlugin: PluginDefinition = {
     description: 'Convert meeting transcripts and summaries to natural voice audio using ElevenLabs AI.',
     version: '1.0.0',
     author: 'Wicara AI',
-    icon: '🎙️',
+    icon: '/elevenlabs58.webp',
     category: 'ai',
     price: 'free', // Free plugin, user brings their own ElevenLabs API key
   },

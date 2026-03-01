@@ -44,11 +44,12 @@ export const fetchOllamaModels = async (
 // Generate summary using Ollama
 export const generateOllamaSummary = async (
     transcriptText: string,
-    config: OllamaConfig
+    config: OllamaConfig,
+    customPrompt?: string
 ): Promise<string> => {
     const { endpoint = DEFAULT_LOCAL_ENDPOINT, model, apiKey } = config;
 
-    const prompt = `You are an AI assistant for meeting minutes.
+    const prompt = customPrompt || `You are an AI assistant for meeting minutes.
 Based on the following transcript, please generate a structured summary including:
 1. **Executive Summary**: A concise paragraph relative to the content.
 2. **Key Discussion Points**: Bullet points of main topics.

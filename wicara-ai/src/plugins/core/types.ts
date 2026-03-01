@@ -33,6 +33,7 @@ export const AVAILABLE_HOOKS = [
   'transcript:before-display',
   'export:formats',
   'summary:generate',
+  'summary:prompt',
   'audio:process',
   'settings:voice-providers',
   'audio:get-stream', // Plugins can provide audio stream (e.g. system audio)
@@ -45,6 +46,7 @@ export const AVAILABLE_SLOTS = [
   'meeting-actions', // Actions in meeting details (e.g. Export, Voice)
   'sidebar-menu',    // Custom sidebar items
   'recording-options', // Options in recording interface (e.g. System Audio toggle)
+  'summary-options', // Options related to summary generation/display
 ] as const;
 
 export type AvailableSlot = typeof AVAILABLE_SLOTS[number];

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Typography, Card, Row, Col, Button, Tag, Space, Empty } from 'antd';
-import { CheckCircleOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Typography, Card, Row, Col, Button, Tag, Space, Empty, Modal, Spin, message, Flex } from 'antd';
+import { CheckCircleOutlined, DownloadOutlined, DeleteOutlined, CrownFilled } from '@ant-design/icons';
 import { usePlugins } from '../plugins/core';
 import type { PluginDefinition } from '../plugins/core/types';
+import { supabase } from '../lib/supabase';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -14,14 +15,93 @@ const categoryColors: Record<string, string> = {
 };
 
 export const MarketplacePage: React.FC = () => {
-  const { plugins, isInstalled, install, uninstall } = usePlugins();
+  const { plugins: bundledPlugins, isInstalled, install, uninstall, isSyncing } = usePlugins();
 
-  const handleToggle = (plugin: PluginDefinition) => {
-    if (isInstalled(plugin.meta.id)) {
-      uninstall(plugin.meta.id);
-    } else {
-      install(plugin.meta.id);
+  const [dbPlugins, setDbPlugins] = React.useState<PluginDefinition[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = React.useState(false);
+  const [pluginToBuy, setPluginToBuy] = React.useState<PluginDefinition | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchPluginsFromSupabase();
+  }, []);
+
+  const fetchPluginsFromSupabase = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('plugins')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // Map Supabase data to PluginDefinition meta format
+        const fetchedPlugins: PluginDefinition[] = data.map((item: any) => ({
+          meta: {
+            id: item.id,
+            name: item.name,
+            version: item.version,
+            author: item.author,
+            description: item.description,
+            icon: item.icon,
+            category: item.category,
+            price: item.price === 0 ? 'free' : item.price
+          }
+        }));
+        setDbPlugins(fetchedPlugins);
+      } else {
+        // Fallback to bundled plugins if table is empty or doesn't exist yet
+        setDbPlugins(bundledPlugins);
+      }
+    } catch (err) {
+      console.error('Failed to fetch plugins from Supabase:', err);
+      // Fallback
+      setDbPlugins(bundledPlugins);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleToggle = async (plugin: PluginDefinition) => {
+    if (isInstalled(plugin.meta.id)) {
+      await uninstall(plugin.meta.id);
+    } else {
+      if (plugin.meta.price !== 'free' && typeof plugin.meta.price === 'number') {
+        // Check if bundled code actually exists
+        const isBundled = bundledPlugins.find(p => p.meta.id === plugin.meta.id);
+        if (!isBundled) {
+            message.warning(`Plugin ${plugin.meta.name} belum tersedia di versi aplikasi ini.`);
+            return;
+        }
+
+        setPluginToBuy(plugin);
+        setIsPaymentModalVisible(true);
+      } else {
+        const isBundled = bundledPlugins.find(p => p.meta.id === plugin.meta.id);
+        if (!isBundled) {
+            message.warning(`Plugin ${plugin.meta.name} belum tersedia di versi aplikasi ini.`);
+            return;
+        }
+        await install(plugin.meta.id);
+      }
+    }
+  };
+
+  const handleSimulatePayment = () => {
+    if (!pluginToBuy) return;
+
+    setIsProcessingPayment(true);
+    setTimeout(async () => {
+        await install(pluginToBuy.meta.id);
+        setIsProcessingPayment(false);
+        setIsPaymentModalVisible(false);
+        setPluginToBuy(null);
+        message.success(`Pembayaran berhasil! Plugin ${pluginToBuy.meta.name} telah diinstall.`);
+    }, 2000);
   };
 
   return (
@@ -31,11 +111,18 @@ export const MarketplacePage: React.FC = () => {
         Expand Wicara AI functionality with plugins. Install what you need.
       </Paragraph>
 
-      {plugins.length === 0 ? (
+      {loading || isSyncing ? (
+        <div style={{ textAlign: 'center', padding: '50px 0' }}>
+            <Spin size="large" />
+            <div style={{ marginTop: 16 }}>
+              <Text type="secondary">{isSyncing ? 'Syncing your plugins...' : 'Loading plugins...'}</Text>
+            </div>
+        </div>
+      ) : dbPlugins.length === 0 ? (
         <Empty description="No plugins available" />
       ) : (
         <Row gutter={[16, 16]}>
-          {plugins.map((plugin) => {
+          {dbPlugins.map((plugin) => {
             const installed = isInstalled(plugin.meta.id);
             return (
               <Col xs={24} sm={12} lg={8} key={plugin.meta.id}>
@@ -46,10 +133,14 @@ export const MarketplacePage: React.FC = () => {
                     borderWidth: installed ? 2 : 1,
                   }}
                 >
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <Flex vertical gap="middle" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <Space>
-                        <span style={{ fontSize: 32 }}>{plugin.meta.icon}</span>
+                        {plugin.meta.icon.match(/^(http|\/|.*\.(png|jpg|jpeg|svg|webp|gif))/) ? (
+                          <img src={plugin.meta.icon} alt={plugin.meta.name} style={{ width: 32, height: 32, objectFit: 'contain' }} />
+                        ) : (
+                          <span style={{ fontSize: 32 }}>{plugin.meta.icon}</span>
+                        )}
                         <div>
                           <Text strong style={{ fontSize: 16 }}>{plugin.meta.name}</Text>
                           <br />
@@ -64,7 +155,6 @@ export const MarketplacePage: React.FC = () => {
                     <Paragraph
                       type="secondary"
                       ellipsis={{ rows: 2 }}
-                      style={{ marginBottom: 8, marginTop: 8 }}
                     >
                       {plugin.meta.description}
                     </Paragraph>
@@ -93,13 +183,68 @@ export const MarketplacePage: React.FC = () => {
                         </Text>
                       </div>
                     )}
-                  </Space>
+                  </Flex>
                 </Card>
               </Col>
             );
           })}
         </Row>
       )}
+
+      {/* Premium Payment Demo Modal */}
+      <Modal
+          title={<span><CrownFilled style={{ color: '#faad14' }} /> Pembayaran Plugin (Demo)</span>}
+          open={isPaymentModalVisible}
+          onCancel={() => {
+              if (isProcessingPayment) return;
+              setIsPaymentModalVisible(false);
+              setPluginToBuy(null);
+          }}
+          footer={null}
+          centered
+      >
+          {pluginToBuy && (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <Title level={4}>Install {pluginToBuy.meta.name}</Title>
+                  <p style={{ color: '#666', marginBottom: 24 }}>
+                      Plugin ini berbayar. Lakukan pembayaran untuk melanjutkan instalasi.
+                  </p>
+                  
+                  <Card style={{ background: '#fafafa', marginBottom: 24 }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text>Harga Plugin</Text>
+                              <Text strong>Rp {pluginToBuy.meta.price.toLocaleString()}</Text>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text>PPN (11%)</Text>
+                              <Text strong>Rp {((typeof pluginToBuy.meta.price === 'number' ? pluginToBuy.meta.price : 0) * 0.11).toLocaleString()}</Text>
+                          </div>
+                          <div style={{ borderTop: '1px dashed #d9d9d9', margin: '8px 0' }} />
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Text strong>Total Pembayaran</Text>
+                              <Text strong style={{ fontSize: 18, color: '#1677ff' }}>
+                                Rp {((typeof pluginToBuy.meta.price === 'number' ? pluginToBuy.meta.price : 0) * 1.11).toLocaleString()}
+                              </Text>
+                          </div>
+                      </Space>
+                  </Card>
+
+                  <Button 
+                      type="primary" 
+                      size="large" 
+                      block 
+                      onClick={handleSimulatePayment}
+                      disabled={isProcessingPayment}
+                  >
+                      {isProcessingPayment ? <Spin size="small" style={{ marginRight: 8 }} /> : 'Bayar via QRIS (Mock)'}
+                  </Button>
+                  <Text type="secondary" style={{ display: 'block', marginTop: 12, fontSize: 12 }}>
+                      *Tombol ini akan mensimulasikan proses checkout sukses dan otomatis menginstall plugin.
+                  </Text>
+              </div>
+          )}
+      </Modal>
     </div>
   );
 };

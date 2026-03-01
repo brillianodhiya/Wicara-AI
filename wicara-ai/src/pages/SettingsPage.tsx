@@ -33,7 +33,7 @@ export const SettingsPage: React.FC = () => {
         return PluginManager.triggerSync('settings:voice-providers', baseProviders);
     }, []);
 
-    // Load saved keys when hook is ready
+    // Load saved keys and provider selections when hook is ready
     useEffect(() => {
         if (loaded) {
             form.setFieldsValue({
@@ -43,6 +43,9 @@ export const SettingsPage: React.FC = () => {
                 ollamaEndpoint: keys.ollamaEndpoint || 'http://localhost:11434',
                 elevenlabs: keys.elevenlabs,
             });
+            // Restore saved provider selections
+            if (keys.voiceProvider) setVoiceProvider(keys.voiceProvider);
+            if (keys.llmProvider) setLlmProvider(keys.llmProvider);
         }
     }, [loaded, keys, form]);
 
@@ -55,6 +58,8 @@ export const SettingsPage: React.FC = () => {
                 ollamaCloud: values.ollamaCloud || '',
                 ollamaEndpoint: values.ollamaEndpoint || 'http://localhost:11434',
                 elevenlabs: values.elevenlabs || '',
+                voiceProvider,
+                llmProvider,
             });
             message.success('Settings berhasil disimpan!');
         } catch (error) {

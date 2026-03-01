@@ -9,9 +9,12 @@ import {
     UserOutlined,
     LogoutOutlined,
     MenuOutlined,
-    ShopOutlined
+    ShopOutlined,
+    CustomerServiceOutlined,
+    ThunderboltOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlugins } from '../plugins/core/usePlugins';
 import '../styles/layout.css';
 
 interface NavItem {
@@ -21,18 +24,23 @@ interface NavItem {
     label: string;
 }
 
-const navItems: NavItem[] = [
-    { key: 'home', path: '/', icon: <HomeOutlined />, label: 'Home' },
-    { key: 'record', path: '/record', icon: <AudioOutlined />, label: 'Record' },
-    { key: 'history', path: '/history', icon: <HistoryOutlined />, label: 'History' },
-    { key: 'marketplace', path: '/marketplace', icon: <ShopOutlined />, label: 'Plugins' },
-    { key: 'settings', path: '/settings', icon: <SettingOutlined />, label: 'Settings' },
-];
-
 export const MainLayout: React.FC = () => {
     const { user, signOut } = useAuth();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Check if realtime AI plugin is installed
+    const { isInstalled } = usePlugins();
+    
+    const navItems: NavItem[] = [
+        { key: 'home', path: '/', icon: <HomeOutlined />, label: 'Home' },
+        { key: 'record', path: '/record', icon: <AudioOutlined />, label: 'Record' },
+        ...(isInstalled('realtime-ai') ? [{ key: 'realtime', path: '/realtime', icon: <ThunderboltOutlined />, label: 'Realtime' }] : []),
+        { key: 'history', path: '/history', icon: <HistoryOutlined />, label: 'History' },
+        { key: 'marketplace', path: '/marketplace', icon: <ShopOutlined />, label: 'Plugins' },
+        { key: 'services', path: '/services', icon: <CustomerServiceOutlined />, label: 'Services' },
+        { key: 'settings', path: '/settings', icon: <SettingOutlined />, label: 'Settings' },
+    ];
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     useEffect(() => {

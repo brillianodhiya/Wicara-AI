@@ -111,6 +111,10 @@ class PluginManagerClass {
     return this.installedIds.has(pluginId);
   }
 
+  getInstalledIds(): Set<string> {
+    return new Set(this.installedIds);
+  }
+
   // Get all registered plugins
   getAllPlugins(): PluginDefinition[] {
     return [...this.plugins.values()];

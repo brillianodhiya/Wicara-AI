@@ -42,12 +42,13 @@ export const fetchGeminiModels = async (apiKey: string): Promise<GeminiModel[]> 
 export const generateMeetingSummary = async (
     apiKey: string,
     transcriptText: string,
-    modelName: string = "gemini-2.0-flash"
+    modelName: string = "gemini-2.0-flash",
+    customPrompt?: string
 ) => {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    const prompt = `
+    const prompt = customPrompt || `
     You are an AI assistant for meeting minutes.
     Based on the following transcript, please generate a structured summary including:
     1. **Executive Summary**: A concise paragraph relative to the content.

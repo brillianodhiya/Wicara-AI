@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, List, Typography, Button, Input, Empty, Tag, Popconfirm, message, Space, Modal } from 'antd';
+import { Card, Typography, Button, Input, Empty, Tag, Popconfirm, message, Space, Modal } from 'antd';
 import {
     DeleteOutlined,
     SearchOutlined,
@@ -15,7 +15,7 @@ import { PluginSlot } from '../plugins/core';
 const { Title, Text, Paragraph } = Typography;
 
 export const MeetingHistory: React.FC = () => {
-    const { meetings, loading, searchQuery, removeMeeting, search } = useMeetings();
+    const { meetings, searchQuery, removeMeeting, search } = useMeetings();
     const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
     const [detailVisible, setDetailVisible] = useState(false);
 
@@ -81,11 +81,12 @@ export const MeetingHistory: React.FC = () => {
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                         />
                     ) : (
-                        <List
-                            loading={loading}
-                            dataSource={meetings}
-                            renderItem={(meeting) => (
-                                <List.Item
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {meetings.map((meeting) => (
+                                <Card 
+                                    key={meeting.id} 
+                                    size="small" 
+                                    style={{ width: '100%', marginBottom: '8px' }}
                                     actions={[
                                         <Button
                                             key="view"
@@ -108,29 +109,27 @@ export const MeetingHistory: React.FC = () => {
                                         </Popconfirm>
                                     ]}
                                 >
-                                    <List.Item.Meta
-                                        title={
+                                    <Space direction="vertical" style={{ width: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <Space>
                                                 <Text strong>{meeting.title}</Text>
                                                 <Tag color={getStatusColor(meeting.status)}>
                                                     {meeting.status}
                                                 </Tag>
                                             </Space>
-                                        }
-                                        description={
-                                            <Space split="•">
-                                                <Text type="secondary">
-                                                    <CalendarOutlined /> {formatDate(meeting.createdAt)}
-                                                </Text>
-                                                <Text type="secondary">
-                                                    <ClockCircleOutlined /> {formatDuration(meeting.duration)}
-                                                </Text>
-                                            </Space>
-                                        }
-                                    />
-                                </List.Item>
-                            )}
-                        />
+                                        </div>
+                                        <Space separator="•">
+                                            <Text type="secondary">
+                                                <CalendarOutlined /> {formatDate(meeting.createdAt)}
+                                            </Text>
+                                            <Text type="secondary">
+                                                <ClockCircleOutlined /> {formatDuration(meeting.duration)}
+                                            </Text>
+                                        </Space>
+                                    </Space>
+                                </Card>
+                            ))}
+                        </div>
                     )}
                 </Space>
             </Card>
@@ -145,7 +144,7 @@ export const MeetingHistory: React.FC = () => {
             >
                 {selectedMeeting && (
                     <Space direction="vertical" style={{ width: '100%' }}>
-                        <Space split="•">
+                        <Space separator="•">
                             <Text type="secondary">
                                 <CalendarOutlined /> {formatDate(selectedMeeting.createdAt)}
                             </Text>
