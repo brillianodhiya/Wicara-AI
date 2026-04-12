@@ -62,11 +62,6 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
-            // Localhost APIs (Ollama local) → NetworkOnly
-            urlPattern: /^http:\/\/localhost:\d+\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
             // Other external HTTPS resources → NetworkFirst with cache fallback
             urlPattern: /^https:\/\/.*/i,
             handler: 'NetworkFirst',

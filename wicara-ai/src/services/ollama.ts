@@ -24,7 +24,8 @@ export const fetchOllamaModels = async (
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
-        const response = await fetch(`${endpoint}/api/tags`, {
+        const baseUrl = endpoint.replace(/\/+$/, '');
+        const response = await fetch(`${baseUrl}/api/tags`, {
             method: 'GET',
             headers,
         });
@@ -64,7 +65,8 @@ ${transcriptText}`;
     }
 
     try {
-        const response = await fetch(`${endpoint}/api/generate`, {
+        const baseUrl = endpoint.replace(/\/+$/, '');
+        const response = await fetch(`${baseUrl}/api/generate`, {
             method: 'POST',
             headers,
             body: JSON.stringify({
@@ -75,12 +77,13 @@ ${transcriptText}`;
         });
 
         if (!response.ok) {
-            throw new Error(`Ollama request failed: ${response.statusText}`);
+            const errorText = await response.text().catch(() => 'no detailed error');
+            throw new Error(`Ollama request failed (${response.status}): ${errorText}`);
         }
 
         const data = await response.json();
         return data.response;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Ollama Summary Failed:", error);
         throw error;
     }
@@ -97,7 +100,8 @@ export const checkOllamaHealth = async (
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
 
-        const response = await fetch(`${endpoint}/api/tags`, {
+        const baseUrl = endpoint.replace(/\/+$/, '');
+        const response = await fetch(`${baseUrl}/api/tags`, {
             method: 'GET',
             headers,
             signal: AbortSignal.timeout(3000),

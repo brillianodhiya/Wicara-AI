@@ -13,7 +13,7 @@ import {
     CustomerServiceOutlined,
     ThunderboltOutlined
 } from '@ant-design/icons';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContextCore';
 import { usePlugins } from '../plugins/core/usePlugins';
 import '../styles/layout.css';
 

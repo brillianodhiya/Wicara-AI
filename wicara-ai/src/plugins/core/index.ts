@@ -1,3 +1,4 @@
 export * from './types';
 export { PluginManager } from './PluginManager';
-export { usePlugins, PluginSlot, usePluginHook } from './usePlugins';
+export { usePlugins, usePluginHook } from './usePlugins';
+export { PluginSlot } from './PluginSlot';

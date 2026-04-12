@@ -44,6 +44,9 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
     const [selectedOllamaModel, setSelectedOllamaModel] = useState<string>('');
     const [ollamaOnline, setOllamaOnline] = useState<boolean | null>(null);
 
+    // Summary configuration
+    const [summaryLanguage, setSummaryLanguage] = useState<'id' | 'en'>('id');
+
     const [loadingModels, setLoadingModels] = useState(false);
     const { isSummarizing, summary, error: summaryError, requestSummary, clearSummary } = useSummary();
 
@@ -148,7 +151,8 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
             requestSummary(textToSummarize, {
                 provider: 'gemini',
                 geminiApiKey: geminiKey,
-                geminiModel: selectedGeminiModel
+                geminiModel: selectedGeminiModel,
+                language: summaryLanguage
             });
         } else {
             const apiKey = provider === 'ollama-cloud' ? ollamaApiKey : undefined;
@@ -158,7 +162,8 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
                     endpoint: ollamaEndpoint,
                     model: selectedOllamaModel,
                     apiKey
-                }
+                },
+                language: summaryLanguage
             });
         }
     };
@@ -429,6 +434,21 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ transcript, 
                     <PluginSlot name="summary-options" context={{ transcriptText: transcript.text }} />
 
                     {getProviderConfig()}
+
+                    <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+                        <Button style={{ width: '120px', cursor: 'default', background: '#fafafa' }} type="text">
+                            Bahasa
+                        </Button>
+                        <Select
+                            style={{ width: 'calc(100% - 120px)' }}
+                            value={summaryLanguage}
+                            onChange={(val) => setSummaryLanguage(val as 'id' | 'en')}
+                            options={[
+                                { value: 'id', label: 'Bahasa Indonesia' },
+                                { value: 'en', label: 'English' }
+                            ]}
+                        />
+                    </Space.Compact>
 
                     <Button
                         type="primary"

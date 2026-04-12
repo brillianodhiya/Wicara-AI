@@ -1,7 +1,6 @@
-import React, { useSyncExternalStore, useCallback, useState, useEffect } from 'react';
+import { useSyncExternalStore, useCallback, useState, useEffect } from 'react';
 import { PluginManager } from './PluginManager';
-import type { AvailableSlot } from './types';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContextCore';
 import { supabase } from '../../lib/supabase';
 
 // Hook to get all plugins with reactivity
@@ -11,7 +10,6 @@ export function usePlugins() {
 
   const subscribe = useCallback((callback: () => void) => {
     // For MVP, we don't have real-time updates
-    // This is a placeholder for future reactivity
     window.addEventListener('storage', callback);
     return () => window.removeEventListener('storage', callback);
   }, []);
@@ -108,24 +106,6 @@ export function usePlugins() {
     },
   };
 }
-
-// Component to render slot content
-interface PluginSlotComponentProps {
-  name: AvailableSlot;
-  context: Record<string, unknown>;
-}
-
-export const PluginSlot: React.FC<PluginSlotComponentProps> = ({ name, context }) => {
-  const components = PluginManager.getSlotComponents(name);
-
-  return (
-    <>
-      {components.map((Component, index) => (
-        <Component key={`${name}-${index}`} context={context} />
-      ))}
-    </>
-  );
-};
 
 // Hook to trigger hooks
 export function usePluginHook() {

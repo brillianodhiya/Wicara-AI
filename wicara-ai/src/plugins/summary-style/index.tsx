@@ -14,41 +14,41 @@ export const SummaryStylePlugin: PluginDefinition = {
     },
     hooks: {
         'summary:prompt': (data: unknown) => {
-            const hookData = data as { transcriptText: string, prompt: string | null };
+            const hookData = data as { transcriptText: string, prompt: string | null, language?: 'id' | 'en' };
             const savedStyle = localStorage.getItem('wicara_summary_style_selection') as SummaryStyle || 'professional';
             
             let toneInstruction = '';
             
             switch (savedStyle) {
                 case 'casual':
-                    toneInstruction = 'Gunakan gaya bahasa santai, kasual, relevan untuk anak muda (Gen Z/Millenial), tanpa mengurangi esensi isi percakapan.';
+                    toneInstruction = hookData.language === 'en' 
+                        ? 'Use a casual, relaxed tone relevant for youth (Gen Z/Millenial), without losing the essence of the conversation.'
+                        : 'Gunakan gaya bahasa santai, kasual, relevan untuk anak muda (Gen Z/Millenial), tanpa mengurangi esensi isi percakapan.';
                     break;
                 case 'funny':
-                    toneInstruction = 'Gunakan gaya bahasa yang lucu, humoris, sedikit sarkas jika cocok, namun tetap menyampaikan pesannya. Hindari bahasa yang terlalu formal.';
+                    toneInstruction = hookData.language === 'en'
+                        ? 'Use a funny, humorous tone, slightly sarcastic if appropriate, but still convey the message. Avoid overly formal language.'
+                        : 'Gunakan gaya bahasa yang lucu, humoris, sedikit sarkas jika cocok, namun tetap menyampaikan pesannya. Hindari bahasa yang terlalu formal.';
                     break;
                 case 'tegas':
-                    toneInstruction = 'Gunakan gaya bahasa yang sangat ringkas, tegas, to the point, dan sangat berorientasi pada action items. Tidak ada basa-basi.';
+                    toneInstruction = hookData.language === 'en'
+                        ? 'Use a very concise, firm, to the point tone, highly oriented towards action items. No fluff.'
+                        : 'Gunakan gaya bahasa yang sangat ringkas, tegas, to the point, dan sangat berorientasi pada action items. Tidak ada basa-basi.';
                     break;
                 case 'friendly':
-                    toneInstruction = 'Gunakan gaya bahasa yang ramah, hangat, dan penuh empati, seperti seorang teman yang baik sedang memberikan ringkasan.';
+                    toneInstruction = hookData.language === 'en'
+                        ? 'Use a friendly, warm, and empathetic tone, like a good friend giving a summary.'
+                        : 'Gunakan gaya bahasa yang ramah, hangat, dan penuh empati, seperti seorang teman yang baik sedang memberikan ringkasan.';
                     break;
                 case 'professional':
                 default:
-                    // Return the data unchanged to use the default service prompt
                     return data;
             }
 
-            // Override the prompt with the selected tone
-            hookData.prompt = `You are an AI assistant for meeting minutes.
-${toneInstruction}
-
-Based on the following transcript, please generate a structured summary including:
-1. **Executive Summary**: A concise paragraph relative to the content.
-2. **Key Discussion Points**: Bullet points of main topics.
-3. **Action Items**: Who needs to do what (if mentioned).
-
-TRANSCRIPT:
-${hookData.transcriptText}`;
+            // Override the prompt with the selected tone prefixed to the base prompt
+            if (hookData.prompt) {
+                hookData.prompt = `[STYLE GUIDELINE: ${toneInstruction}]\n\n${hookData.prompt}`;
+            }
 
             return hookData;
         }

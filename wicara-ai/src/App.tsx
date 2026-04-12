@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, Spin } from 'antd';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContextCore';
 import { MainLayout } from './layouts/MainLayout';
 import { AuthPage } from './pages/AuthPage';
 import { Dashboard } from './pages/Dashboard';

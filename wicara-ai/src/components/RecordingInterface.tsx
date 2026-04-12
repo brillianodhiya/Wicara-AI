@@ -8,7 +8,7 @@ import { useMeetings } from '../hooks/useMeetings';
 import { blobToBase64 } from '../services/meetings';
 import { AudioVisualizer } from './AudioVisualizer';
 import { TranscriptViewer, type TranscriptSession } from './TranscriptViewer';
-import { PluginSlot } from '../plugins/core/usePlugins';
+import { PluginSlot } from '../plugins/core';
 
 const { Text } = Typography;
 
@@ -117,7 +117,7 @@ export const RecordingInterface: React.FC<RecordingInterfaceProps> = ({ onSaved 
             setSessions([]);
             setLastTranscriptId(0);
             onSaved?.();
-        } catch (err) {
+        } catch {
             message.error('Gagal menyimpan meeting');
         } finally {
             setSaving(false);
